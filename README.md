@@ -38,6 +38,7 @@ Install dependencies
 Run these commands from the repository root (`/`) using PowerShell:
 
 ```powershell
+npm install -g pnpm
 pnpm install
 ```
 

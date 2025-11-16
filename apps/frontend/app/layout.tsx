@@ -27,7 +27,7 @@ export default function RootLayout({
         className={`${inter.variable} antialiased flex flex-col min-h-screen`}
         suppressHydrationWarning
       >
-        <Navbar />
+
         <main className="flex-1">{children}</main>
         <Footer />
       </body>

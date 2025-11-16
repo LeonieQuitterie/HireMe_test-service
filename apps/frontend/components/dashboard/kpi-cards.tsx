@@ -18,44 +18,62 @@ export function KPICards() {
     {
       title: "Total Candidates",
       value: totalCandidates,
+      subtitle: "active participants",
       icon: Users,
       color: "text-blue-600",
-      bgColor: "bg-blue-50",
+      bgColor: "bg-blue-100",
+      borderColor: "border-blue-200",
+      gradient: "from-blue-600 to-blue-400"
     },
     {
       title: "Passed",
-      value: `${passedCandidates} (${passRate}%)`,
+      value: passedCandidates,
+      subtitle: `${passRate}% pass rate`,
       icon: CheckCircle2,
       color: "text-green-600",
-      bgColor: "bg-green-50",
+      bgColor: "bg-green-100",
+      borderColor: "border-green-200",
+      gradient: "from-green-600 to-green-400"
     },
     {
       title: "Failed",
-      value: `${failedCandidates} (${(100 - Number.parseFloat(passRate)).toFixed(1)}%)`,
+      value: failedCandidates,
+      subtitle: `${(100 - Number.parseFloat(passRate)).toFixed(1)}% fail rate`,
       icon: XCircle,
       color: "text-red-600",
-      bgColor: "bg-red-50",
+      bgColor: "bg-red-100",
+      borderColor: "border-red-200",
+      gradient: "from-red-600 to-red-400"
     },
     {
       title: "Average Score",
       value: averageScore,
+      subtitle: "out of 10.0",
       icon: TrendingUp,
       color: "text-purple-600",
-      bgColor: "bg-purple-50",
+      bgColor: "bg-purple-100",
+      borderColor: "border-purple-200",
+      gradient: "from-purple-600 to-purple-400"
     },
     {
       title: "Highest Score",
       value: highestScore,
+      subtitle: "top performer",
       icon: Award,
       color: "text-amber-600",
-      bgColor: "bg-amber-50",
+      bgColor: "bg-amber-100",
+      borderColor: "border-amber-200",
+      gradient: "from-amber-600 to-amber-400"
     },
     {
       title: "Lowest Score",
       value: lowestScore,
+      subtitle: "needs improvement",
       icon: AlertCircle,
       color: "text-orange-600",
-      bgColor: "bg-orange-50",
+      bgColor: "bg-orange-100",
+      borderColor: "border-orange-200",
+      gradient: "from-orange-600 to-orange-400"
     },
   ]
 
@@ -67,16 +85,25 @@ export function KPICards() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: index * 0.05 }}
+          className="h-full"
         >
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">{kpi.title}</CardTitle>
-              <div className={`p-2 rounded-lg ${kpi.bgColor}`}>
-                <kpi.icon className={`w-4 h-4 ${kpi.color}`} />
+          <Card className={`bg-white/80 backdrop-blur-sm ${kpi.borderColor} hover:shadow-lg transition-all duration-300 hover:scale-[1.02] h-full flex flex-col`}>
+            <CardContent className="p-6 flex flex-col flex-1">
+              <div className="flex items-center justify-between mb-3">
+                <div className={`w-12 h-12 ${kpi.bgColor} rounded-xl flex items-center justify-center shrink-0`}>
+                  <kpi.icon className={`w-6 h-6 ${kpi.color}`} />
+                </div>
+                <div className={`px-2 py-1 bg-gradient-to-r ${kpi.gradient} rounded-md shrink-0`}>
+                  <span className="text-xs font-semibold text-white">Live</span>
+                </div>
               </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{kpi.value}</div>
+              <div className="flex-1 flex flex-col">
+                <p className="text-sm font-medium text-gray-600 mb-1">{kpi.title}</p>
+                <p className={`text-3xl font-bold ${kpi.color} mb-1`}>{kpi.value}</p>
+                <p className="text-xs text-gray-500 mt-auto min-h-[16px]">
+                  {kpi.subtitle}
+                </p>
+              </div>
             </CardContent>
           </Card>
         </motion.div>

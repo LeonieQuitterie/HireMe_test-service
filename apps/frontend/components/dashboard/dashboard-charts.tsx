@@ -17,6 +17,23 @@ import {
   Line,
 } from "recharts"
 import { motion } from "framer-motion"
+import { TrendingUp, Users, Award, BarChart3, PieChart as PieChartIcon } from "lucide-react"
+
+// ✅ DI CHUYỂN COMPONENT RA NGOÀI
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-white px-4 py-3 rounded-lg shadow-lg border border-indigo-200">
+        <p className="font-semibold text-gray-800">{label}</p>
+        <p className="text-indigo-600 font-bold text-lg">
+          {payload[0].value.toFixed(2)}
+        </p>
+      </div>
+    )
+  }
+  return null
+}
 
 export function DashboardCharts() {
   // Data for average scores bar chart
@@ -83,24 +100,40 @@ export function DashboardCharts() {
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {/* Average Scores Bar Chart */}
       <motion.div custom={0} initial="hidden" animate="visible" variants={chartVariants}>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Average Scores by Candidate</CardTitle>
+        <Card className="bg-white/80 backdrop-blur-sm border-indigo-200 shadow-md hover:shadow-lg transition-all duration-300 h-full">
+          <CardHeader className="border-b border-indigo-100 bg-gradient-to-r from-blue-50 to-indigo-50">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                <BarChart3 className="w-5 h-5 text-blue-600" />
+              </div>
+              <div>
+                <CardTitle className="text-lg font-bold text-gray-800">Average Scores by Candidate</CardTitle>
+                <p className="text-xs text-gray-600 mt-0.5">Performance overview</p>
+              </div>
+            </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-6">
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={averageScoresData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                <XAxis dataKey="name" tick={{ fill: "#64748b", fontSize: 12 }} />
-                <YAxis domain={[0, 10]} tick={{ fill: "#64748b", fontSize: 12 }} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "#fff",
-                    border: "1px solid #e5e7eb",
-                    borderRadius: "8px",
-                  }}
+                <defs>
+                  <linearGradient id="blueGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.8} />
+                    <stop offset="100%" stopColor="#6366f1" stopOpacity={0.6} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" opacity={0.5} />
+                <XAxis
+                  dataKey="name"
+                  tick={{ fill: "#64748b", fontSize: 12, fontWeight: 500 }}
+                  axisLine={{ stroke: "#cbd5e1" }}
                 />
-                <Bar dataKey="score" fill="#0066cc" radius={[8, 8, 0, 0]} />
+                <YAxis
+                  domain={[0, 10]}
+                  tick={{ fill: "#64748b", fontSize: 12, fontWeight: 500 }}
+                  axisLine={{ stroke: "#cbd5e1" }}
+                />
+                <Tooltip content={<CustomTooltip />} cursor={{ fill: "#e0e7ff", opacity: 0.3 }} />
+                <Bar dataKey="score" fill="url(#blueGradient)" radius={[8, 8, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -109,23 +142,36 @@ export function DashboardCharts() {
 
       {/* Top 5 Candidates Horizontal Bar Chart */}
       <motion.div custom={1} initial="hidden" animate="visible" variants={chartVariants}>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Top 5 Candidates</CardTitle>
+        <Card className="bg-white/80 backdrop-blur-sm border-green-200 shadow-md hover:shadow-lg transition-all duration-300 h-full">
+          <CardHeader className="border-b border-green-100 bg-gradient-to-r from-green-50 to-emerald-50">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                <Award className="w-5 h-5 text-green-600" />
+              </div>
+              <div>
+                <CardTitle className="text-lg font-bold text-gray-800">Top 5 Candidates</CardTitle>
+                <p className="text-xs text-gray-600 mt-0.5">Highest performers</p>
+              </div>
+            </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-6">
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={topCandidatesData} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                <XAxis type="number" domain={[0, 10]} tick={{ fill: "#64748b", fontSize: 12 }} />
-                <YAxis dataKey="name" type="category" tick={{ fill: "#64748b", fontSize: 12 }} width={80} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "#fff",
-                    border: "1px solid #e5e7eb",
-                    borderRadius: "8px",
-                  }}
+                <CartesianGrid strokeDasharray="3 3" stroke="#d1fae5" opacity={0.5} />
+                <XAxis
+                  type="number"
+                  domain={[0, 10]}
+                  tick={{ fill: "#64748b", fontSize: 12, fontWeight: 500 }}
+                  axisLine={{ stroke: "#cbd5e1" }}
                 />
+                <YAxis
+                  dataKey="name"
+                  type="category"
+                  tick={{ fill: "#64748b", fontSize: 12, fontWeight: 600 }}
+                  width={80}
+                  axisLine={{ stroke: "#cbd5e1" }}
+                />
+                <Tooltip content={<CustomTooltip />} cursor={{ fill: "#d1fae5", opacity: 0.3 }} />
                 <Bar dataKey="score" fill="url(#greenGradient)" radius={[0, 8, 8, 0]} />
                 <defs>
                   <linearGradient id="greenGradient" x1="0" y1="0" x2="1" y2="0">
@@ -141,29 +187,47 @@ export function DashboardCharts() {
 
       {/* Score Trend Line Chart */}
       <motion.div custom={2} initial="hidden" animate="visible" variants={chartVariants}>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Score Trend Over Time</CardTitle>
+        <Card className="bg-white/80 backdrop-blur-sm border-purple-200 shadow-md hover:shadow-lg transition-all duration-300 h-full">
+          <CardHeader className="border-b border-purple-100 bg-gradient-to-r from-purple-50 to-pink-50">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                <TrendingUp className="w-5 h-5 text-purple-600" />
+              </div>
+              <div>
+                <CardTitle className="text-lg font-bold text-gray-800">Score Trend Over Time</CardTitle>
+                <p className="text-xs text-gray-600 mt-0.5">Performance timeline</p>
+              </div>
+            </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-6">
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={trendData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                <XAxis dataKey="date" tick={{ fill: "#64748b", fontSize: 12 }} />
-                <YAxis domain={[0, 10]} tick={{ fill: "#64748b", fontSize: 12 }} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "#fff",
-                    border: "1px solid #e5e7eb",
-                    borderRadius: "8px",
-                  }}
+                <defs>
+                  <linearGradient id="purpleGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#a855f7" stopOpacity={0.3} />
+                    <stop offset="100%" stopColor="#a855f7" stopOpacity={0.05} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e9d5ff" opacity={0.5} />
+                <XAxis
+                  dataKey="date"
+                  tick={{ fill: "#64748b", fontSize: 12, fontWeight: 500 }}
+                  axisLine={{ stroke: "#cbd5e1" }}
                 />
+                <YAxis
+                  domain={[0, 10]}
+                  tick={{ fill: "#64748b", fontSize: 12, fontWeight: 500 }}
+                  axisLine={{ stroke: "#cbd5e1" }}
+                />
+                <Tooltip content={<CustomTooltip />} />
                 <Line
                   type="monotone"
                   dataKey="score"
-                  stroke="#0066cc"
+                  stroke="#a855f7"
                   strokeWidth={3}
-                  dot={{ fill: "#0066cc", r: 5 }}
+                  dot={{ fill: "#fff", stroke: "#a855f7", strokeWidth: 2, r: 6 }}
+                  activeDot={{ r: 8, fill: "#a855f7" }}
+                  fill="url(#purpleGradient)"
                 />
               </LineChart>
             </ResponsiveContainer>
@@ -173,11 +237,19 @@ export function DashboardCharts() {
 
       {/* Pass/Fail Pie Chart */}
       <motion.div custom={3} initial="hidden" animate="visible" variants={chartVariants}>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Pass/Fail Distribution</CardTitle>
+        <Card className="bg-white/80 backdrop-blur-sm border-amber-200 shadow-md hover:shadow-lg transition-all duration-300 h-full">
+          <CardHeader className="border-b border-amber-100 bg-gradient-to-r from-amber-50 to-orange-50">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
+                <PieChartIcon className="w-5 h-5 text-amber-600" />
+              </div>
+              <div>
+                <CardTitle className="text-lg font-bold text-gray-800">Pass/Fail Distribution</CardTitle>
+                <p className="text-xs text-gray-600 mt-0.5">Success rate analysis</p>
+              </div>
+            </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-6">
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
@@ -189,38 +261,80 @@ export function DashboardCharts() {
                   outerRadius={100}
                   fill="#8884d8"
                   dataKey="value"
+                  strokeWidth={3}
+                  stroke="#fff"
                 >
                   {statusData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={entry.color}
+                      style={{
+                        filter: 'drop-shadow(0px 2px 4px rgba(0,0,0,0.1))',
+                        cursor: 'pointer'
+                      }}
+                    />
                   ))}
                 </Pie>
-                <Tooltip />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "#fff",
+                    border: "1px solid #e5e7eb",
+                    borderRadius: "8px",
+                    boxShadow: "0 4px 6px rgba(0,0,0,0.1)"
+                  }}
+                />
               </PieChart>
             </ResponsiveContainer>
+            <div className="flex justify-center gap-6 mt-4">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                <span className="text-sm font-medium text-gray-700">Passed: {passedCount}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                <span className="text-sm font-medium text-gray-700">Failed: {failedCount}</span>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </motion.div>
 
       {/* Score Distribution Histogram */}
       <motion.div custom={4} initial="hidden" animate="visible" variants={chartVariants} className="lg:col-span-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Score Distribution</CardTitle>
+        <Card className="bg-white/80 backdrop-blur-sm border-indigo-200 shadow-md hover:shadow-lg transition-all duration-300">
+          <CardHeader className="border-b border-indigo-100 bg-gradient-to-r from-indigo-50 to-purple-50">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
+                <Users className="w-5 h-5 text-indigo-600" />
+              </div>
+              <div>
+                <CardTitle className="text-lg font-bold text-gray-800">Score Distribution</CardTitle>
+                <p className="text-xs text-gray-600 mt-0.5">Candidate distribution across score ranges</p>
+              </div>
+            </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-6">
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={scoreRanges}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                <XAxis dataKey="range" tick={{ fill: "#64748b", fontSize: 12 }} />
-                <YAxis tick={{ fill: "#64748b", fontSize: 12 }} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "#fff",
-                    border: "1px solid #e5e7eb",
-                    borderRadius: "8px",
-                  }}
+                <defs>
+                  <linearGradient id="indigoPurpleGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#6366f1" stopOpacity={0.8} />
+                    <stop offset="100%" stopColor="#a855f7" stopOpacity={0.6} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" opacity={0.5} />
+                <XAxis
+                  dataKey="range"
+                  tick={{ fill: "#64748b", fontSize: 12, fontWeight: 500 }}
+                  axisLine={{ stroke: "#cbd5e1" }}
                 />
-                <Bar dataKey="count" fill="#6366f1" radius={[8, 8, 0, 0]} />
+                <YAxis
+                  tick={{ fill: "#64748b", fontSize: 12, fontWeight: 500 }}
+                  axisLine={{ stroke: "#cbd5e1" }}
+                  label={{ value: 'Number of Candidates', angle: -90, position: 'insideLeft', style: { fill: '#64748b', fontSize: 12 } }}
+                />
+                <Tooltip content={<CustomTooltip />} cursor={{ fill: "#e0e7ff", opacity: 0.3 }} />
+                <Bar dataKey="count" fill="url(#indigoPurpleGradient)" radius={[8, 8, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>

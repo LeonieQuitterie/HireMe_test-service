@@ -14,7 +14,7 @@ export default function NotFound() {
           <CardTitle className="text-2xl">Candidate Not Found</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <p className="text-muted-foreground">The candidate you&apos;re looking for doesn&apos;t exist or has been removed.</p>
+          <p className="text-muted-foreground">The candidate you're looking for doesn't exist or has been removed.</p>
           <Link href="/dashboard">
             <Button className="bg-primary hover:bg-primary-hover">Return to Dashboard</Button>
           </Link>
