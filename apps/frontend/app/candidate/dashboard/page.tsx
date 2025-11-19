@@ -38,7 +38,7 @@ export default function HomePage() {
 
     const handleJoinRoom = () => {
         if (roomCode.length === 6 && /^\d{6}$/.test(roomCode)) {
-            router.push(`/test?room=${roomCode}`)
+            router.push(`/candidate/test?room=${roomCode}`)
         } else {
             alert("Please enter a valid 6-digit room code.")
         }

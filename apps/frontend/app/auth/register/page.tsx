@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Mail, Lock, Eye, EyeOff, User } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, User, Briefcase } from "lucide-react";
 
 export default function Register({ onToggleMode }: { onToggleMode: () => void }) {
     const router = useRouter();
@@ -57,13 +57,20 @@ export default function Register({ onToggleMode }: { onToggleMode: () => void })
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-md w-full space-y-8">
+        <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 to-pink-100 relative overflow-hidden flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+            {/* Animated Background Blobs */}
+            <div className="absolute inset-0 opacity-20">
+                <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-indigo-300 rounded-full mix-blend-multiply filter blur-xl animate-blob"></div>
+                <div className="absolute top-1/2 right-1/4 w-64 h-64 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-2000"></div>
+                <div className="absolute bottom-1/4 left-1/2 w-64 h-64 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-4000"></div>
+            </div>
+
+            <div className="max-w-md w-full space-y-8 relative z-10">
                 <div className="text-center">
                     <div className="flex justify-center">
-                        <div className="w-16 h-16 bg-blue-600 rounded-xl flex items-center justify-center">
-                            <User className="w-8 h-8 text-white" />
-                        </div>
+                         <div className="w-16 h-16 bg-indigo-600 rounded-xl flex items-center justify-center">
+              <Briefcase className="w-8 h-8 text-white" />
+            </div>
                     </div>
                     <h2 className="mt-6 text-3xl font-bold text-gray-900">Create your account</h2>
                     <p className="mt-2 text-sm text-gray-600">Register to start your journey</p>
@@ -79,7 +86,7 @@ export default function Register({ onToggleMode }: { onToggleMode: () => void })
                                     type="button"
                                     onClick={() => setForm({ ...form, role: "applicant" })}
                                     className={`p-3 rounded-lg border-2 transition-colors ${form.role === "applicant"
-                                        ? "border-blue-500 bg-blue-50 text-blue-700"
+                                        ? "border-indigo-500 bg-indigo-50 text-gray-900"
                                         : "border-gray-300 hover:border-gray-400"
                                         }`}
                                 >
@@ -90,7 +97,7 @@ export default function Register({ onToggleMode }: { onToggleMode: () => void })
                                     type="button"
                                     onClick={() => setForm({ ...form, role: "employer" })}
                                     className={`p-3 rounded-lg border-2 transition-colors ${form.role === "employer"
-                                        ? "border-blue-500 bg-blue-50 text-blue-700"
+                                        ? "border-indigo-500 bg-indigo-50 text-gray-900"
                                         : "border-gray-300 hover:border-gray-400"
                                         }`}
                                 >
@@ -109,7 +116,7 @@ export default function Register({ onToggleMode }: { onToggleMode: () => void })
                                 required
                                 value={form.name}
                                 onChange={handleChange}
-                                className="block w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="block w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                                 placeholder="John Doe"
                             />
                         </div>
@@ -127,7 +134,7 @@ export default function Register({ onToggleMode }: { onToggleMode: () => void })
                                     required
                                     value={form.email}
                                     onChange={handleChange}
-                                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                                     placeholder="you@example.com"
                                 />
                             </div>
@@ -146,7 +153,7 @@ export default function Register({ onToggleMode }: { onToggleMode: () => void })
                                     required
                                     value={form.password}
                                     onChange={handleChange}
-                                    className="block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                                     placeholder="Enter your password"
                                 />
                                 <button
@@ -168,7 +175,7 @@ export default function Register({ onToggleMode }: { onToggleMode: () => void })
                                 required
                                 value={form.confirmPassword}
                                 onChange={handleChange}
-                                className="block w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="block w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                                 placeholder="Re-enter your password"
                             />
                         </div>
@@ -180,7 +187,7 @@ export default function Register({ onToggleMode }: { onToggleMode: () => void })
                                 name="acceptTerms"
                                 checked={form.acceptTerms}
                                 onChange={handleChange}
-                                className="h-4 w-4 text-blue-600 border-gray-300 rounded"
+                                className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
                             />
                             <label className="text-sm text-gray-700">I agree to the terms and conditions</label>
                         </div>
@@ -190,7 +197,7 @@ export default function Register({ onToggleMode }: { onToggleMode: () => void })
                         <button
                             type="submit"
                             disabled={loading}
-                            className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {loading ? "Registering..." : "Sign up"}
                         </button>
@@ -202,7 +209,7 @@ export default function Register({ onToggleMode }: { onToggleMode: () => void })
                             <button
                                 type="button"
                                 onClick={() => router.push('/auth/login')}
-                                className="text-blue-600 hover:text-blue-500 font-medium"
+                                className="text-indigo-600 hover:text-indigo-500 font-medium"
                             >
                                 Sign in
                             </button>
