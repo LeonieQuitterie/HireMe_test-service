@@ -134,81 +134,52 @@ export function AnalyticsSidebar({ jobs }: AnalyticsSidebarProps) {
         </CardContent>
       </Card>
 
-      {/* Department Overview */}
-      <Card className="bg-white/80 backdrop-blur-sm border-blue-200 shadow-lg">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <BarChart3 className="w-5 h-5 text-blue-600" />
-            Department Overview
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {departmentStats.map((dept) => (
-            <div key={dept.name} className="space-y-1">
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">{dept.name}</span>
-                <span className="font-semibold text-blue-600">{dept.count}</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div
-                  className="bg-gradient-to-r from-blue-400 to-blue-600 h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${(dept.count / maxDeptCount) * 100}%` }}
-                />
-              </div>
-            </div>
-          ))}
-          {departmentStats.length === 0 && (
-            <p className="text-sm text-gray-500 text-center py-4">No departments yet</p>
-          )}
-        </CardContent>
-      </Card>
-
       {/* Recent Activity */}
-      <Card className="bg-white/80 backdrop-blur-sm border-orange-200 shadow-lg">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Clock className="w-5 h-5 text-orange-600" />
-            Recent Activity
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2">Recently Created</h4>
-            <div className="space-y-2">
-              {recentJobs.map((job) => (
-                <div key={job.id} className="flex items-start gap-2 text-sm">
-                  <Briefcase className="w-4 h-4 text-indigo-500 mt-0.5 flex-shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-gray-700 truncate">{job.title}</p>
-                    <p className="text-xs text-gray-500">{job.createdAt}</p>
+        <Card className="bg-white/80 backdrop-blur-sm border-orange-200 shadow-lg">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Clock className="w-5 h-5 text-orange-600" />
+              Recent Activity
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2">Recently Created</h4>
+              <div className="space-y-2">
+                {recentJobs.map((job) => (
+                  <div key={job.id} className="flex items-start gap-2 text-sm">
+                    <Briefcase className="w-4 h-4 text-indigo-500 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-gray-700 truncate">{job.title}</p>
+                      <p className="text-xs text-gray-500">{job.createdAt}</p>
+                    </div>
                   </div>
-                </div>
-              ))}
-              {recentJobs.length === 0 && (
-                <p className="text-xs text-gray-500 text-center py-2">No jobs yet</p>
-              )}
+                ))}
+                {recentJobs.length === 0 && (
+                  <p className="text-xs text-gray-500 text-center py-2">No jobs yet</p>
+                )}
+              </div>
             </div>
-          </div>
 
-          <div className="border-t pt-3">
-            <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2">Recently Updated</h4>
-            <div className="space-y-2">
-              {recentUpdates.map((job) => (
-                <div key={job.id} className="flex items-start gap-2 text-sm">
-                  <MessageSquare className="w-4 h-4 text-purple-500 mt-0.5 flex-shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-gray-700 truncate">{job.title}</p>
-                    <p className="text-xs text-gray-500">{job.updatedAt}</p>
+            <div className="border-t pt-3">
+              <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2">Recently Updated</h4>
+              <div className="space-y-2">
+                {recentUpdates.map((job) => (
+                  <div key={job.id} className="flex items-start gap-2 text-sm">
+                    <MessageSquare className="w-4 h-4 text-purple-500 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-gray-700 truncate">{job.title}</p>
+                      <p className="text-xs text-gray-500">{job.updatedAt}</p>
+                    </div>
                   </div>
-                </div>
-              ))}
-              {recentUpdates.length === 0 && (
-                <p className="text-xs text-gray-500 text-center py-2">No updates yet</p>
-              )}
+                ))}
+                {recentUpdates.length === 0 && (
+                  <p className="text-xs text-gray-500 text-center py-2">No updates yet</p>
+                )}
+              </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
     </div>
   )
 }

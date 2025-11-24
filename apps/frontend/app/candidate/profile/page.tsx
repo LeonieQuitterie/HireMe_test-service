@@ -204,7 +204,7 @@ export default function CandidateProfilePage() {
                                         />
                                     </div>
 
-                                    <div>
+                                    {/* <div>
                                         <Label htmlFor="location" className="flex items-center gap-2 mb-2">
                                             <MapPin className="w-4 h-4 text-red-600" />
                                             Location (Timezone)
@@ -232,9 +232,9 @@ export default function CandidateProfilePage() {
                                             placeholder="https://linkedin.com/in/yourprofile"
                                             className="border-indigo-200 focus:border-indigo-500"
                                         />
-                                    </div>
+                                    </div> */}
 
-                                    <div className="md:col-span-2">
+                                    {/* <div className="md:col-span-2">
                                         <Label htmlFor="bio" className="flex items-center gap-2 mb-2">
                                             <User className="w-4 h-4 text-purple-600" />
                                             Short Bio
@@ -249,7 +249,7 @@ export default function CandidateProfilePage() {
                                             className="border-indigo-200 focus:border-indigo-500 resize-none"
                                         />
                                         <p className="text-xs text-gray-500 mt-1">Keep it concise for online interviews</p>
-                                    </div>
+                                    </div> */}
                                 </div>
                             </div>
 
@@ -281,7 +281,7 @@ export default function CandidateProfilePage() {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 to-pink-100 py-8">
-            <div className="max-w-4xl mx-auto px-4">
+            <div className="max-w-5xl mx-auto px-4">
                 {/* Header */}
                 <div className="text-center mb-8">
                     <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
@@ -316,22 +316,22 @@ export default function CandidateProfilePage() {
                                 {/* Quick Stats */}
                                 <div className="space-y-3 mb-6 pb-6 border-b border-gray-200">
                                     <div className="flex items-center gap-3 text-gray-700">
-                                        <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                                            <Calendar className="w-5 h-5 text-green-600" />
+                                        <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                                            <Mail className="w-5 h-5 text-blue-600" />
                                         </div>
-                                        <div className="flex-1">
-                                            <p className="text-xs text-gray-500">Joined</p>
-                                            <p className="font-semibold">{user.joinedDate}</p>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-xs text-gray-500 truncate">Email</p>
+                                            <p className="font-semibold truncate">{user.email}</p>
                                         </div>
                                     </div>
 
                                     <div className="flex items-center gap-3 text-gray-700">
                                         <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
-                                            <MapPin className="w-5 h-5 text-red-600" />
+                                            <Phone className="w-5 h-5 text-red-600" />
                                         </div>
                                         <div className="flex-1">
-                                            <p className="text-xs text-gray-500">Location</p>
-                                            <p className="font-semibold">{user.location || "Not provided"}</p>
+                                            <p className="text-xs text-gray-500">Phone</p>
+                                            <p className="font-semibold">{user.phone || "Not provided"}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -360,7 +360,7 @@ export default function CandidateProfilePage() {
                     {/* Right Column - Details */}
                     <div className="lg:col-span-2 space-y-6">
                         {/* About Section */}
-                        <Card className="bg-white/80 backdrop-blur-sm border-indigo-200 shadow-lg">
+                        {/* <Card className="bg-white/80 backdrop-blur-sm border-indigo-200 shadow-lg">
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2 text-indigo-900">
                                     <User className="w-5 h-5" />
@@ -370,10 +370,10 @@ export default function CandidateProfilePage() {
                             <CardContent>
                                 <p className="text-gray-700 leading-relaxed">{user.bio || "No bio provided yet."}</p>
                             </CardContent>
-                        </Card>
+                        </Card> */}
 
                         {/* Contact Information */}
-                        <Card className="bg-white/80 backdrop-blur-sm border-indigo-200 shadow-lg">
+                        {/* <Card className="bg-white/80 backdrop-blur-sm border-indigo-200 shadow-lg">
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2 text-indigo-900">
                                     <Mail className="w-5 h-5" />
@@ -427,7 +427,7 @@ export default function CandidateProfilePage() {
                                     </div>
                                 </div>
                             </CardContent>
-                        </Card>
+                        </Card> */}
 
                         {/* Security & Privacy */}
                         <Card className="bg-white/80 backdrop-blur-sm border-indigo-200 shadow-lg">

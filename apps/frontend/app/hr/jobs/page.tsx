@@ -356,7 +356,7 @@ export default function JobPage() {
                             <div className="flex-1 relative">
                                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                                 <Input
-                                    placeholder="Search by job title, department, or location..."
+                                    placeholder="Search ..."
                                     value={searchQuery}
                                     onChange={(e) => {
                                         setSearchQuery(e.target.value)
@@ -366,7 +366,7 @@ export default function JobPage() {
                                 />
                             </div>
 
-                            <Select value={filterStatus} onValueChange={(value) => {
+                            {/* <Select value={filterStatus} onValueChange={(value) => {
                                 setFilterStatus(value)
                                 setCurrentPage(1)
                             }}>
@@ -379,9 +379,9 @@ export default function JobPage() {
                                     <SelectItem value="Draft">Draft</SelectItem>
                                     <SelectItem value="Closed">Closed</SelectItem>
                                 </SelectContent>
-                            </Select>
+                            </Select> */}
 
-                            <Select value={filterDepartment} onValueChange={(value) => {
+                            {/* <Select value={filterDepartment} onValueChange={(value) => {
                                 setFilterDepartment(value)
                                 setCurrentPage(1)
                             }}>
@@ -395,7 +395,7 @@ export default function JobPage() {
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
-                            </Select>
+                            </Select> */}
                         </div>
 
                         {/* Results count */}
@@ -544,7 +544,7 @@ export default function JobPage() {
                             </CardContent>
                         </Card>
 
-                        {/* Department Overview */}
+                        {/* Department Overview
                         <Card className="bg-white/80 backdrop-blur-sm border-blue-200">
                             <CardHeader className="pb-3">
                                 <CardTitle className="text-lg flex items-center gap-2">
@@ -571,7 +571,7 @@ export default function JobPage() {
                                     <p className="text-sm text-gray-500 text-center py-4">No departments yet</p>
                                 )}
                             </CardContent>
-                        </Card>
+                        </Card> */}
 
 
                     </div>

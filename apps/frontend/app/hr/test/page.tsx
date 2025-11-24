@@ -202,7 +202,7 @@ export default function TestManagementPage() {
               </div>
             </Card>
 
-            <Card className="p-4 bg-white/80 backdrop-blur-sm border-green-200 hover:shadow-lg transition-all duration-300">
+            {/* <Card className="p-4 bg-white/80 backdrop-blur-sm border-green-200 hover:shadow-lg transition-all duration-300">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
                   <Target className="w-5 h-5 text-green-600" />
@@ -214,7 +214,7 @@ export default function TestManagementPage() {
                   <p className="text-xs text-gray-600">Avg. Difficulty</p>
                 </div>
               </div>
-            </Card>
+            </Card> */}
           </div>
 
           {/* Search and Filter Section */}
@@ -255,7 +255,7 @@ export default function TestManagementPage() {
                 ))}
               </select>
 
-              <select
+              {/* <select
                 value={difficultyFilter}
                 onChange={(e) => setDifficultyFilter(e.target.value)}
                 className="lg:w-36 w-full px-4 py-3 border border-indigo-200 rounded-lg bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:outline-none"
@@ -264,7 +264,7 @@ export default function TestManagementPage() {
                 <option value="Easy">Easy</option>
                 <option value="Medium">Medium</option>
                 <option value="Hard">Hard</option>
-              </select>
+              </select> */}
             </div>
 
             {/* Results count */}

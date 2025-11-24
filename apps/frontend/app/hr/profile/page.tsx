@@ -214,7 +214,7 @@ export default function ProfilePage() {
                                             className="border-indigo-200 focus:border-indigo-500"
                                         />
                                     </div>
-
+                                    {/* 
                                     <div>
                                         <Label htmlFor="location" className="flex items-center gap-2 mb-2">
                                             <MapPin className="w-4 h-4 text-red-600" />
@@ -228,9 +228,9 @@ export default function ProfilePage() {
                                             placeholder="City, Country"
                                             className="border-indigo-200 focus:border-indigo-500"
                                         />
-                                    </div>
+                                    </div> */}
 
-                                    <div>
+                                    {/* <div>
                                         <Label htmlFor="company" className="flex items-center gap-2 mb-2">
                                             <Briefcase className="w-4 h-4 text-blue-600" />
                                             Company
@@ -242,8 +242,8 @@ export default function ProfilePage() {
                                             onChange={handleInputChange}
                                             className="border-indigo-200 focus:border-indigo-500"
                                         />
-                                    </div>
-
+                                    </div> */}
+                                    {/* 
                                     <div>
                                         <Label htmlFor="department" className="flex items-center gap-2 mb-2">
                                             <Award className="w-4 h-4 text-orange-600" />
@@ -256,8 +256,8 @@ export default function ProfilePage() {
                                             onChange={handleInputChange}
                                             className="border-indigo-200 focus:border-indigo-500"
                                         />
-                                    </div>
-
+                                    </div> */}
+                                    {/* 
                                     <div className="md:col-span-2">
                                         <Label htmlFor="linkedin" className="flex items-center gap-2 mb-2">
                                             <Link2 className="w-4 h-4 text-blue-600" />
@@ -271,9 +271,9 @@ export default function ProfilePage() {
                                             placeholder="https://linkedin.com/in/yourprofile"
                                             className="border-indigo-200 focus:border-indigo-500"
                                         />
-                                    </div>
+                                    </div> */}
 
-                                    <div className="md:col-span-2">
+                                    {/* <div className="md:col-span-2">
                                         <Label htmlFor="bio" className="flex items-center gap-2 mb-2">
                                             <User className="w-4 h-4 text-purple-600" />
                                             Bio
@@ -288,7 +288,7 @@ export default function ProfilePage() {
                                             className="border-indigo-200 focus:border-indigo-500 resize-none"
                                         />
                                         <p className="text-xs text-gray-500 mt-1">Brief description for your profile</p>
-                                    </div>
+                                    </div> */}
                                 </div>
                             </div>
 
@@ -356,21 +356,22 @@ export default function ProfilePage() {
                                 <div className="space-y-3 mb-6 pb-6 border-b border-gray-200">
                                     <div className="flex items-center gap-3 text-gray-700">
                                         <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                                            <Briefcase className="w-5 h-5 text-blue-600" />
+                                            <Mail className="w-5 h-5 text-blue-600" />
                                         </div>
-                                        <div className="flex-1">
-                                            <p className="text-xs text-gray-500">Company</p>
-                                            <p className="font-semibold">{user.company}</p>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-xs text-gray-500 truncate">Email</p>
+                                            <p className="font-semibold truncate">{user.email}</p>
                                         </div>
                                     </div>
 
+
                                     <div className="flex items-center gap-3 text-gray-700">
                                         <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                                            <Award className="w-5 h-5 text-purple-600" />
+                                            <Phone className="w-5 h-5 text-purple-600" />
                                         </div>
                                         <div className="flex-1">
-                                            <p className="text-xs text-gray-500">Department</p>
-                                            <p className="font-semibold">{user.department}</p>
+                                            <p className="text-xs text-gray-500">Phone</p>
+                                            <p className="font-semibold">{user.phone}</p>
                                         </div>
                                     </div>
 
@@ -409,7 +410,7 @@ export default function ProfilePage() {
                     {/* Right Column - Details */}
                     <div className="lg:col-span-2 space-y-6">
                         {/* About Section */}
-                        <Card className="bg-white/80 backdrop-blur-sm border-indigo-200 shadow-lg">
+                        {/* <Card className="bg-white/80 backdrop-blur-sm border-indigo-200 shadow-lg">
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2 text-indigo-900">
                                     <User className="w-5 h-5" />
@@ -419,10 +420,10 @@ export default function ProfilePage() {
                             <CardContent>
                                 <p className="text-gray-700 leading-relaxed">{user.bio || "No bio provided yet."}</p>
                             </CardContent>
-                        </Card>
+                        </Card> */}
 
                         {/* Contact Information */}
-                        <Card className="bg-white/80 backdrop-blur-sm border-indigo-200 shadow-lg">
+                        {/* <Card className="bg-white/80 backdrop-blur-sm border-indigo-200 shadow-lg">
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2 text-indigo-900">
                                     <Mail className="w-5 h-5" />
@@ -476,7 +477,7 @@ export default function ProfilePage() {
                                     </div>
                                 </div>
                             </CardContent>
-                        </Card>
+                        </Card> */}
 
                         {/* Security & Privacy */}
                         <Card className="bg-white/80 backdrop-blur-sm border-indigo-200 shadow-lg">

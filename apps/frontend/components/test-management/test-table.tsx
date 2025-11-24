@@ -50,7 +50,7 @@ export function TestTable({
                 <thead>
                     <tr className="border-b-2 border-indigo-200 bg-gradient-to-r from-indigo-50 to-purple-50">
                         <th className="px-6 py-4 text-left text-sm font-bold text-indigo-900">Test Name</th>
-                        <th className="px-6 py-4 text-left text-sm font-bold text-indigo-900">Job Position</th>
+                        <th className="px-6 py-4 text-left text-sm font-bold text-indigo-900">Job</th>
                         <th className="px-6 py-4 text-left text-sm font-bold text-indigo-900">Questions</th>
                         <th className="px-6 py-4 text-left text-sm font-bold text-indigo-900">Duration</th>
                         <th className="px-6 py-4 text-left text-sm font-bold text-indigo-900">Status</th>

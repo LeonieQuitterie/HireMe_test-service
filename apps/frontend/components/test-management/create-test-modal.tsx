@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X, Plus, Trash2, Save, FileText, Clock, Target, HelpCircle } from 'lucide-react';
+import { X, Plus, Trash2, Save, FileText, Clock, Target, HelpCircle, CheckCircle } from 'lucide-react';
 import { Question, sampleJobs, Test } from "@/lib/mock";
 
 interface CreateTestModalProps {
@@ -20,6 +20,7 @@ export function CreateTestModal({
     const [selectedJob, setSelectedJob] = useState(editingTest?.jobId || 1);
     const [testName, setTestName] = useState(editingTest?.name || "");
     const [duration, setDuration] = useState(editingTest?.duration || 30);
+    const [passing, setPassing] = useState(editingTest?.passing || 5);
     const [questions, setQuestions] = useState<Question[]>(editingTest?.questions || []);
 
     useEffect(() => {
@@ -27,6 +28,7 @@ export function CreateTestModal({
             setSelectedJob(editingTest.jobId);
             setTestName(editingTest.name);
             setDuration(editingTest.duration);
+            setPassing(editingTest.passing);
             setQuestions(editingTest.questions);
         }
     }, [editingTest]);
@@ -73,6 +75,7 @@ export function CreateTestModal({
             name: testName,
             questions,
             duration,
+            passing,
             status: "closed"
         };
 
@@ -124,7 +127,7 @@ export function CreateTestModal({
                                 Basic Information
                             </h3>
                             <div className="grid grid-cols-2 gap-4">
-                                <div>
+                                {/* <div>
                                     <label className="block text-sm font-semibold text-gray-700 mb-2">
                                         Job Position
                                     </label>
@@ -139,7 +142,7 @@ export function CreateTestModal({
                                             </option>
                                         ))}
                                     </select>
-                                </div>
+                                </div> */}
                                 <div>
                                     <label className="block text-sm font-semibold text-gray-700 mb-2">
                                         Test Name
@@ -167,7 +170,23 @@ export function CreateTestModal({
                                     />
                                 </div>
 
-                         
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-1">
+                                        <CheckCircle className="w-4 h-4 text-yellow-600" />
+                                        Passing score
+                                    </label>
+                                    <input
+                                        type="number"
+                                        value={passing}
+                                        onChange={(e) => setPassing(Number(e.target.value))}
+                                        min="0"
+                                        max="10"
+                                        step="0.1"
+                                        className="w-full px-4 py-3 border border-indigo-200 rounded-lg bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:outline-none transition-all"
+                                    />
+                                </div>
+
+
 
                             </div>
                         </div>
@@ -241,7 +260,7 @@ export function CreateTestModal({
                                             />
 
 
-                                            
+
                                         </div>
                                     ))}
                                 </div>
@@ -256,7 +275,7 @@ export function CreateTestModal({
                         {questions.length > 0 && (
                             <>
                                 <strong>{questions.length}</strong> question{questions.length !== 1 ? 's' : ''} •
-                
+
                             </>
                         )}
                     </div>

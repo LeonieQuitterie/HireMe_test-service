@@ -85,7 +85,7 @@ export function JobForm({ job, onSave, onCancel }: JobFormProps) {
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
+        {/* <div className="space-y-2">
           <Label htmlFor="department" className="text-gray-700 font-semibold">
             Department
           </Label>
@@ -102,8 +102,8 @@ export function JobForm({ job, onSave, onCancel }: JobFormProps) {
               <SelectItem value="Operations">Operations</SelectItem>
             </SelectContent>
           </Select>
-        </div>
-
+        </div> */}
+{/* 
         <div className="space-y-2">
           <Label htmlFor="location" className="text-gray-700 font-semibold flex items-center gap-1">
             Location <span className="text-red-500">*</span>
@@ -115,7 +115,7 @@ export function JobForm({ job, onSave, onCancel }: JobFormProps) {
             onChange={(e) => handleChange('location', e.target.value)}
             className="border-indigo-200 focus:border-indigo-500 focus:ring-indigo-500"
           />
-        </div>
+        </div> */}
       </div>
 
       <div className="space-y-2">
@@ -143,15 +143,15 @@ export function JobForm({ job, onSave, onCancel }: JobFormProps) {
               After creating this job, you can add interview questions in the job details page
             </p>
           </div>
-          <div className="bg-white px-3 py-1 rounded-full border border-indigo-200">
+          {/* <div className="bg-white px-3 py-1 rounded-full border border-indigo-200">
             <span className="text-xs font-semibold text-indigo-600">
               {job?.questionsCount || 0} questions
             </span>
-          </div>
+          </div> */}
         </div>
       </div>
 
-      <div className="flex items-center space-x-3 bg-green-50 p-4 rounded-lg border border-green-200">
+      {/* <div className="flex items-center space-x-3 bg-green-50 p-4 rounded-lg border border-green-200">
         <Switch
           id="publish"
           checked={formData.published}
@@ -166,7 +166,7 @@ export function JobForm({ job, onSave, onCancel }: JobFormProps) {
             Make this job visible to candidates right away
           </p>
         </div>
-      </div>
+      </div> */}
 
       <DialogFooter className="gap-3 flex-col sm:flex-row">
         <Button 
@@ -176,13 +176,13 @@ export function JobForm({ job, onSave, onCancel }: JobFormProps) {
         >
           Cancel
         </Button>
-        <Button
+        {/* <Button
           variant="outline"
           onClick={() => handleSubmit('draft')}
           className="w-full sm:w-auto border-yellow-300 bg-yellow-50 hover:bg-yellow-100 text-yellow-700"
         >
           Save as Draft
-        </Button>
+        </Button> */}
         <Button
           onClick={() => handleSubmit('publish')}
           className="w-full sm:w-auto bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-lg"

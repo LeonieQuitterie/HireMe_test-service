@@ -54,8 +54,8 @@ export function JobTable({ jobs, onEdit, onDelete, getStatusColor }: JobTablePro
                     <TableHeader className="bg-gradient-to-r from-indigo-50 to-purple-50 border-b-2 border-indigo-200">
                         <TableRow>
                             <TableHead className="text-indigo-800 font-bold">Job Title</TableHead>
-                            <TableHead className="text-indigo-800 font-bold">Department</TableHead>
-                            <TableHead className="text-indigo-800 font-bold">Status</TableHead>
+                            {/* <TableHead className="text-indigo-800 font-bold">Department</TableHead> */}
+                            {/* <TableHead className="text-indigo-800 font-bold">Status</TableHead> */}
                             <TableHead className="text-indigo-800 font-bold text-center">
                                 Question Sets
                             </TableHead>
@@ -74,17 +74,17 @@ export function JobTable({ jobs, onEdit, onDelete, getStatusColor }: JobTablePro
                                     </div>
                                 </TableCell>
 
-                                <TableCell>
+                                {/* <TableCell>
                                     <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
                                         {job.department}
                                     </Badge>
-                                </TableCell>
+                                </TableCell> */}
 
-                                <TableCell>
+                                {/* <TableCell>
                                     <Badge className={`${getStatusColor(job.status)} border-0 font-semibold`}>
                                         {job.status}
                                     </Badge>
-                                </TableCell>
+                                </TableCell> */}
 
                                 <TableCell className="text-center">
                                     <div className="flex items-center justify-center">

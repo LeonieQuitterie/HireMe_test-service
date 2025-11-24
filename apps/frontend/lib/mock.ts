@@ -24,6 +24,7 @@ export interface Test {
   name: string;
   questions: Question[];
   duration: number;
+  passing: number;
   status: 'closed' | 'open';
   openAt?: Date; // Date object for scheduled open time
   invitedEmails?: string[]; // Array of email addresses for invites
@@ -88,6 +89,7 @@ export const sampleTests: Test[] = [
     jobId: 1,
     name: "React Fundamentals",
     duration: 30,
+    passing: 10,
     questions: [
       {
         id: 1,
@@ -110,6 +112,7 @@ export const sampleTests: Test[] = [
     jobId: 2,
     name: "Node.js Basics",
     duration: 45,
+    passing: 5,
     questions: [
       {
         id: 1,
@@ -123,6 +126,7 @@ export const sampleTests: Test[] = [
     jobId: 1,
     name: "CSS Layout",
     duration: 20,
+    passing: 1,
     questions: [
       {
         id: 1,
