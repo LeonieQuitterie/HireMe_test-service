@@ -1,60 +1,95 @@
 "use client";
 
 import { useState } from "react";
-import { X, Calendar, Mail, Clock, Send, Users } from 'lucide-react';
-import { Test } from "@/lib/mock";
+import { X, Calendar, Mail, Clock, Send, Users, FileQuestion, Loader2 } from "lucide-react";
+import { Test } from "@/app/types/test";
 
 interface ScheduleTestModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (updatedTest: Test) => void;
-  test?: Test;
+  // Return schedule data for parent to process API
+  onSubmit: (schedule: {
+    testId: string;
+    startTime: string; // ISO string for backend
+    emails: string[];
+  }) => void;
+  test: Test; // test is required
 }
 
-export function ScheduleTestModal({ isOpen, onClose, onSubmit, test }: ScheduleTestModalProps) {
-  const [openTime, setOpenTime] = useState(() => test?.openAt ? test.openAt.toISOString().slice(0, 16) : "");
-  const [emails, setEmails] = useState(() => test?.invitedEmails?.join("\n") || "");
+export function ScheduleTestModal({
+  isOpen,
+  onClose,
+  onSubmit,
+  test,
+}: ScheduleTestModalProps) {
+  const [openTime, setOpenTime] = useState<string>("");
+  const [emails, setEmails] = useState<string>("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!test) return;
 
     if (!openTime) {
-      alert("Please select an opening time");
+      alert("Please select an opening time for the test");
+      return;
+    }
+
+    // Validate time is in the future
+    const selectedTime = new Date(openTime);
+    const now = new Date();
+    if (selectedTime <= now) {
+      alert("Start time must be in the future");
       return;
     }
 
     const emailList = emails
       .split("\n")
-      .map((email) => email.trim())
-      .filter((email) => email.length > 0);
+      .map((e) => e.trim())
+      .filter((e) => e.length > 0);
 
     if (emailList.length === 0) {
-      alert("Please enter at least one email address");
+      alert("Please enter at least one email");
       return;
     }
 
-    // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const invalidEmails = emailList.filter(email => !emailRegex.test(email));
-    if (invalidEmails.length > 0) {
-      alert(`Invalid email addresses: ${invalidEmails.join(", ")}`);
+    const invalid = emailList.filter((email) => !emailRegex.test(email));
+    if (invalid.length > 0) {
+      alert(`Invalid email(s): ${invalid.join(", ")}`);
       return;
     }
 
-    const updatedTest: Test = {
-      ...test,
-      openAt: new Date(openTime),
-      invitedEmails: emailList,
-    };
+    setIsSubmitting(true);
 
-    onSubmit(updatedTest);
-    onClose();
+    try {
+      // Send data to parent component to handle API call
+      await onSubmit({
+        testId: test.id,
+        startTime: selectedTime.toISOString(),
+        emails: emailList,
+      });
+
+      // Reset form
+      setOpenTime("");
+      setEmails("");
+    } catch (error) {
+      console.error("Error in handleSubmit:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  if (!isOpen || !test) return null;
+  const handleClose = () => {
+    if (!isSubmitting) {
+      setOpenTime("");
+      setEmails("");
+      onClose();
+    }
+  };
 
-  const emailCount = emails.split("\n").filter(e => e.trim()).length;
+  if (!isOpen) return null;
+
+  const emailCount = emails.split("\n").filter((e) => e.trim().length > 0).length;
   const selectedDate = openTime ? new Date(openTime) : null;
 
   return (
@@ -67,101 +102,136 @@ export function ScheduleTestModal({ isOpen, onClose, onSubmit, test }: ScheduleT
               <Calendar className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-indigo-900">Schedule Test Opening</h2>
-              <p className="text-sm text-gray-600 mt-0.5">Set timing and send invitations</p>
+              <h2 className="text-xl font-bold text-indigo-900">
+                Schedule Test Opening
+              </h2>
+              <p className="text-sm text-gray-600 mt-0.5">
+                Choose the time and send invitation emails to candidates
+              </p>
             </div>
           </div>
           <button
-            onClick={onClose}
-            className="p-2 hover:bg-white/50 rounded-lg transition-colors"
+            onClick={handleClose}
+            disabled={isSubmitting}
+            className="p-2 hover:bg-white/50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <X size={20} className="text-gray-600" />
           </button>
         </div>
 
         <form onSubmit={handleSubmit}>
-          {/* Content */}
           <div className="p-6 space-y-6">
-            {/* Test Info Card */}
+            {/* Test Info */}
             <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <Clock className="w-4 h-4 text-blue-600" />
-                <label className="text-sm font-semibold text-blue-900">Test Details</label>
+              <div className="flex items-center gap-2 mb-3">
+                <FileQuestion className="w-5 h-5 text-blue-600" />
+                <span className="text-sm font-semibold text-blue-900">Test Information</span>
               </div>
-              <p className="font-bold text-blue-900 text-lg">{test.name}</p>
-              <div className="flex gap-4 mt-2 text-xs text-gray-600">
-                <span>{test.questions.length} questions</span>
-                <span>•</span>
-                <span>{test.duration} minutes</span>
 
+              <p className="font-bold text-blue-900 text-lg">{test.title}</p>
+
+              <div className="grid grid-cols-2 gap-4 mt-3 text-sm text-gray-700">
+                <div className="flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-gray-500" />
+                  <span>{test.time_limit_minutes} minutes</span>
+                </div>
+                <div>
+                  Passing score: <strong>{test.pass_score}%</strong>
+                </div>
+                <div>
+                  Total questions: <strong>{test.questions_count}</strong>
+                </div>
+                <div>
+                  Status: <strong className="text-indigo-600">{test.status}</strong>
+                </div>
               </div>
             </div>
 
-            {/* Opening Time */}
+            {/* Open Time */}
             <div>
               <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
                 <Calendar className="w-4 h-4 text-indigo-600" />
-                Opening Time <span className="text-red-500">*</span>
+                Test Opening Time <span className="text-red-500">*</span>
               </label>
               <input
                 type="datetime-local"
                 value={openTime}
                 onChange={(e) => setOpenTime(e.target.value)}
                 min={new Date().toISOString().slice(0, 16)}
-                className="w-full px-4 py-3 border border-indigo-200 rounded-lg bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:outline-none transition-all font-medium"
+                className="w-full px-4 py-3 border border-indigo-200 rounded-lg focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:outline-none transition-all disabled:bg-gray-100 disabled:cursor-not-allowed"
                 required
+                disabled={isSubmitting}
               />
               {selectedDate && (
                 <p className="text-xs text-gray-600 mt-2">
-                  Test will open on <strong>{selectedDate.toLocaleString()}</strong>
+                  Opens at: <strong>{selectedDate.toLocaleString("en-US", {
+                    weekday: 'short',
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}</strong>
                 </p>
               )}
             </div>
 
-            {/* Email Addresses */}
+            {/* Emails */}
             <div>
               <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
                 <Mail className="w-4 h-4 text-purple-600" />
-                Invite Recipients <span className="text-red-500">*</span>
+                Invitation Email List <span className="text-red-500">*</span>
               </label>
               <textarea
                 value={emails}
                 onChange={(e) => setEmails(e.target.value)}
-                placeholder="candidate1@gmail.com&#10;candidate2@gmail.com&#10;candidate3@gmail.com"
-                rows={6}
-                className="w-full px-4 py-3 border border-indigo-200 rounded-lg bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:outline-none resize-none transition-all font-mono text-sm"
+                placeholder={"candidate1@gmail.com\ncandidate2@yahoo.com\ncandidate3@company.com"}
+                rows={7}
+                className="w-full px-4 py-3 border border-indigo-200 rounded-lg focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:outline-none resize-none font-mono text-sm disabled:bg-gray-100 disabled:cursor-not-allowed"
                 required
+                disabled={isSubmitting}
               />
-              <div className="flex items-center justify-between mt-2">
+              <div className="flex justify-between items-center mt-2">
                 <p className="text-xs text-gray-500">
                   <Users className="w-3 h-3 inline mr-1" />
-                  Enter one email address per line
+                  One email per line
                 </p>
                 {emailCount > 0 && (
-                  <span className="text-xs font-semibold text-indigo-600 bg-indigo-50 px-2 py-1 rounded">
-                    {emailCount} {emailCount === 1 ? 'recipient' : 'recipients'}
+                  <span className="text-xs font-semibold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full">
+                    {emailCount} recipient{emailCount > 1 ? 's' : ''}
                   </span>
                 )}
               </div>
             </div>
-
           </div>
 
           {/* Footer */}
           <div className="flex gap-3 justify-end p-6 border-t border-indigo-100 bg-gray-50">
             <button
               type="button"
-              onClick={onClose}
-              className="px-5 py-2.5 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors font-medium"
+              onClick={handleClose}
+              disabled={isSubmitting}
+              className="px-5 py-2.5 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Cancel
             </button>
+
             <button
               type="submit"
-              className="inline-flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-lg transition-all shadow-lg hover:shadow-xl font-medium"
+              disabled={isSubmitting}
+              className="inline-flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-lg transition-all shadow-lg hover:shadow-xl font-medium disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:from-indigo-600 disabled:hover:to-purple-600"
             >
-              <Send size={18} />
-              Schedule & Send Invites
+              {isSubmitting ? (
+                <>
+                  <Loader2 size={18} className="animate-spin" />
+                  Scheduling...
+                </>
+              ) : (
+                <>
+                  <Send size={18} />
+                  Schedule & Send Invitations
+                </>
+              )}
             </button>
           </div>
         </form>

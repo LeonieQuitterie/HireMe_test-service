@@ -1,72 +1,81 @@
+// apps/frontend/components/job/job-form.tsx
 'use client'
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import {
-  DialogFooter,
-} from '@/components/ui/dialog'
-import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
+import { DialogFooter } from '@/components/ui/dialog'
+import { Job } from '@/app/types/job'
 
-interface Job {
-  id: number
-  title: string
-  status: string
-  questionsCount: number
-  createdAt: string
-  updatedAt: string
-  department: string
-  location: string
-  description: string
-  published: boolean
-}
+
 
 interface JobFormProps {
   job?: Job | null
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  onSave: (formData: any) => void
+  onSave: (job: Job) => void  // sẽ nhận lại job mới từ API
   onCancel: () => void
 }
 
 export function JobForm({ job, onSave, onCancel }: JobFormProps) {
   const [formData, setFormData] = useState({
     title: job?.title || '',
-    department: job?.department || 'IT',
-    location: job?.location || '',
     description: job?.description || '',
-    published: job?.published || false,
   })
+  const [loading, setLoading] = useState(false)
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleChange = (field: string, value: any) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }))
+  const handleChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }))
   }
 
-  const handleSubmit = (action: 'draft' | 'publish') => {
+  const handleSubmit = async () => {
     if (!formData.title.trim()) {
       alert('Please enter a job title')
       return
     }
-    if (!formData.location.trim()) {
-      alert('Please enter a location')
+
+    setLoading(true)
+    const token = localStorage.getItem('access_token')
+    if (!token) {
+      alert('You are not logged in. Please log in again.')
+      setLoading(false)
       return
     }
-    onSave({
-      ...formData,
-      published: action === 'publish',
-    })
+
+    try {
+      // ĐÚNG URL + METHOD CHO CẢ CREATE VÀ UPDATE
+      const url = job
+        ? `${process.env.NEXT_PUBLIC_API_URL}/api/jobs/${job.id}`
+        : `${process.env.NEXT_PUBLIC_API_URL}/api/jobs`
+
+      const res = await fetch(url, {
+        method: job ? 'PUT' : 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          title: formData.title.trim(),
+          description: formData.description.trim() || null,
+        }),
+      })
+
+      const result = await res.json()
+
+      if (!res.ok || !result.success) {
+        throw new Error(result.message || 'Failed to save job')
+      }
+
+      // Gọi onSave với job mới từ backend
+      onSave(result.data.job)
+      alert(job ? 'Job updated successfully!' : 'Job published successfully!')
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (err: any) {
+      console.error('Save job error:', err)
+      alert(err.message || 'Something went wrong')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -81,41 +90,8 @@ export function JobForm({ job, onSave, onCancel }: JobFormProps) {
           value={formData.title}
           onChange={(e) => handleChange('title', e.target.value)}
           className="border-indigo-200 focus:border-indigo-500 focus:ring-indigo-500"
+          disabled={loading}
         />
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        {/* <div className="space-y-2">
-          <Label htmlFor="department" className="text-gray-700 font-semibold">
-            Department
-          </Label>
-          <Select value={formData.department} onValueChange={(value) => handleChange('department', value)}>
-            <SelectTrigger className="border-indigo-200 focus:border-indigo-500 focus:ring-indigo-500">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="IT">IT</SelectItem>
-              <SelectItem value="Marketing">Marketing</SelectItem>
-              <SelectItem value="Sales">Sales</SelectItem>
-              <SelectItem value="HR">HR</SelectItem>
-              <SelectItem value="Finance">Finance</SelectItem>
-              <SelectItem value="Operations">Operations</SelectItem>
-            </SelectContent>
-          </Select>
-        </div> */}
-{/* 
-        <div className="space-y-2">
-          <Label htmlFor="location" className="text-gray-700 font-semibold flex items-center gap-1">
-            Location <span className="text-red-500">*</span>
-          </Label>
-          <Input
-            id="location"
-            placeholder="e.g., Ho Chi Minh City"
-            value={formData.location}
-            onChange={(e) => handleChange('location', e.target.value)}
-            className="border-indigo-200 focus:border-indigo-500 focus:ring-indigo-500"
-          />
-        </div> */}
       </div>
 
       <div className="space-y-2">
@@ -125,69 +101,40 @@ export function JobForm({ job, onSave, onCancel }: JobFormProps) {
         <Textarea
           id="description"
           placeholder="Describe the role, responsibilities, and what makes this position unique..."
-          rows={4}
+          rows={6}
           value={formData.description}
           onChange={(e) => handleChange('description', e.target.value)}
           className="border-indigo-200 focus:border-indigo-500 focus:ring-indigo-500 resize-none"
+          disabled={loading}
         />
-        <p className="text-xs text-gray-500">Provide a clear description to attract the right candidates</p>
+        <p className="text-xs text-gray-500">
+          Provide a clear description to attract the right candidates
+        </p>
       </div>
-
-
 
       <div className="bg-gradient-to-br from-indigo-50 to-purple-50 p-4 rounded-lg border border-indigo-200">
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <h4 className="font-semibold text-indigo-800 mb-1">Interview Questions</h4>
-            <p className="text-sm text-gray-600">
-              After creating this job, you can add interview questions in the job details page
-            </p>
-          </div>
-          {/* <div className="bg-white px-3 py-1 rounded-full border border-indigo-200">
-            <span className="text-xs font-semibold text-indigo-600">
-              {job?.questionsCount || 0} questions
-            </span>
-          </div> */}
-        </div>
+        <h4 className="font-semibold text-indigo-800 mb-1">Interview Questions</h4>
+        <p className="text-sm text-gray-600">
+          After creating this job, you can add interview questions on the job details page.
+        </p>
       </div>
 
-      {/* <div className="flex items-center space-x-3 bg-green-50 p-4 rounded-lg border border-green-200">
-        <Switch
-          id="publish"
-          checked={formData.published}
-          onCheckedChange={(value) => handleChange('published', value)}
-          className="data-[state=checked]:bg-green-600"
-        />
-        <div className="flex-1">
-          <Label htmlFor="publish" className="text-gray-700 font-semibold cursor-pointer block">
-            Publish Immediately
-          </Label>
-          <p className="text-xs text-gray-600 mt-0.5">
-            Make this job visible to candidates right away
-          </p>
-        </div>
-      </div> */}
-
       <DialogFooter className="gap-3 flex-col sm:flex-row">
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           onClick={onCancel}
-          className="w-full sm:w-auto border-gray-300 hover:bg-gray-50"
+          disabled={loading}
+          className="w-full sm:w-auto"
         >
           Cancel
         </Button>
-        {/* <Button
-          variant="outline"
-          onClick={() => handleSubmit('draft')}
-          className="w-full sm:w-auto border-yellow-300 bg-yellow-50 hover:bg-yellow-100 text-yellow-700"
-        >
-          Save as Draft
-        </Button> */}
+
         <Button
-          onClick={() => handleSubmit('publish')}
+          onClick={handleSubmit}
+          disabled={loading}
           className="w-full sm:w-auto bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-lg"
         >
-          {formData.published ? 'Update & Publish' : 'Publish Job'}
+          {loading ? 'Saving...' : job ? 'Update Job' : 'Publish Job'}
         </Button>
       </DialogFooter>
     </div>

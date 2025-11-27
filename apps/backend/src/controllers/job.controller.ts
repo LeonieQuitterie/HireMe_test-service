@@ -1,99 +1,159 @@
-// src/controllers/job.controller.ts
+// apps/backend/src/controllers/job.controller.ts
 import { Request, Response } from 'express';
+import { AuthRequest } from '../middleware/auth.middleware';
 import { JobService } from '../services/job.service';
-import { CreateJobDTO } from '../types';
-
-const jobService = new JobService();
 
 export class JobController {
-  async createJob(req: Request, res: Response) {
-    try {
-      const hrId = req.body.hr_id; // Should come from auth middleware
-      const data: CreateJobDTO = req.body;
-      const job = await jobService.createJob(hrId, data);
-      
-      res.status(201).json({
-        success: true,
-        message: 'Job created successfully',
-        data: job
-      });
-    } catch (error: any) {
-      res.status(400).json({
-        success: false,
-        message: error.message || 'Failed to create job'
-      });
-    }
-  }
 
-  async getJobsByHR(req: Request, res: Response) {
-    try {
-      const hrId = req.params.hrId;
-      const jobs = await jobService.getJobsByHR(hrId);
-      
-      res.status(200).json({
-        success: true,
-        data: jobs
-      });
-    } catch (error: any) {
-      res.status(400).json({
-        success: false,
-        message: error.message || 'Failed to fetch jobs'
-      });
-    }
-  }
+    /**
+ * GET /api/jobs/:id
+ * Lấy chi tiết 1 job - chỉ chủ job (HR đã tạo) mới được xem
+ */
+    static async getJobDetail(req: AuthRequest, res: Response) {
+        try {
+            const hr_id = req.user?.id;
+            const { id } = req.params;
 
-  async getJobById(req: Request, res: Response) {
-    try {
-      const jobId = req.params.jobId;
-      const job = await jobService.getJobById(jobId);
-      
-      res.status(200).json({
-        success: true,
-        data: job
-      });
-    } catch (error: any) {
-      res.status(404).json({
-        success: false,
-        message: error.message || 'Job not found'
-      });
-    }
-  }
+            if (!hr_id) {
+                return res.status(401).json({
+                    success: false,
+                    message: 'Unauthorized',
+                });
+            }
 
-  async updateJob(req: Request, res: Response) {
-    try {
-      const jobId = req.params.jobId;
-      const hrId = req.body.hr_id; // Should come from auth middleware
-      const data: Partial<CreateJobDTO> = req.body;
-      const job = await jobService.updateJob(jobId, hrId, data);
-      
-      res.status(200).json({
-        success: true,
-        message: 'Job updated successfully',
-        data: job
-      });
-    } catch (error: any) {
-      res.status(400).json({
-        success: false,
-        message: error.message || 'Failed to update job'
-      });
-    }
-  }
+            const result = await JobService.getJobDetail(id, hr_id);
 
-  async deleteJob(req: Request, res: Response) {
-    try {
-      const jobId = req.params.jobId;
-      const hrId = req.body.hr_id; // Should come from auth middleware
-      const result = await jobService.deleteJob(jobId, hrId);
-      
-      res.status(200).json({
-        success: true,
-        message: result.message
-      });
-    } catch (error: any) {
-      res.status(400).json({
-        success: false,
-        message: error.message || 'Failed to delete job'
-      });
+            if (!result.success) {
+                return res.status(result.status || 400).json(result);
+            }
+
+            return res.status(200).json(result);
+        } catch (error) {
+            console.error('Get job detail controller error:', error);
+            return res.status(500).json({
+                success: false,
+                message: 'Internal server error',
+            });
+        }
     }
-  }
+
+    /**
+     * POST /api/jobs
+     * Tạo job mới - chỉ HR được tạo
+     */
+
+
+
+    static async getMyJobs(req: AuthRequest, res: Response) {
+        try {
+            const hr_id = req.user?.id;
+            if (!hr_id) {
+                return res.status(401).json({
+                    success: false,
+                    message: 'Unauthorized',
+                });
+            }
+
+            const result = await JobService.getMyJobs(hr_id);
+
+            const statusCode = result.success ? 200 : 400;
+            return res.status(statusCode).json(result);
+        } catch (error) {
+            console.error('Get my jobs controller error:', error);
+            return res.status(500).json({
+                success: false,
+                message: 'Internal server error',
+            });
+        }
+    }
+
+    static async createJob(req: AuthRequest, res: Response) {
+        try {
+            const hr_id = req.user?.id;
+            const { title, description } = req.body;
+
+            if (!title) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Job title is required',
+                });
+            }
+
+            const result = await JobService.createJob({
+                hr_id: hr_id!,
+                title,
+                description: description?.trim() || null,
+            });
+
+            const statusCode = result.success ? 201 : 400;
+            return res.status(statusCode).json(result);
+        } catch (error) {
+            console.error('Create job controller error:', error);
+            return res.status(500).json({
+                success: false,
+                message: 'Internal server error',
+            });
+        }
+    }
+
+    /**
+     * PUT /api/jobs/:id
+     * Cập nhật job - chỉ chủ job (HR đã tạo) mới được sửa
+     */
+    static async updateJob(req: AuthRequest, res: Response) {
+        try {
+            const hr_id = req.user?.id;
+            const { id } = req.params;
+            const { title, description } = req.body;
+
+            if (!title) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Job title is required',
+                });
+            }
+
+            const result = await JobService.updateJob(id, hr_id!, {
+                title,
+                description: description?.trim() || null,
+            });
+
+            if (!result.success) {
+                return res.status(result.status || 400).json(result);
+            }
+
+            return res.status(200).json(result);
+        } catch (error) {
+            console.error('Update job controller error:', error);
+            return res.status(500).json({
+                success: false,
+                message: 'Internal server error',
+            });
+        }
+    }
+
+    /**
+     * DELETE /api/jobs/:id
+     * Xóa job - chỉ chủ job mới được xóa
+     */
+    static async deleteJob(req: AuthRequest, res: Response) {
+        try {
+            const hr_id = req.user?.id;
+            const { id } = req.params;
+
+            const result = await JobService.deleteJob(id, hr_id!);
+
+            if (!result.success) {
+                return res.status(result.status || 400).json(result);
+            }
+
+            return res.status(200).json(result);
+        } catch (error) {
+            console.error('Delete job controller error:', error);
+            return res.status(500).json({
+                success: false,
+                message: 'Internal server error',
+            });
+        }
+    }
 }

@@ -1,12 +1,16 @@
-// src/routes/auth.routes.ts
+// apps/backend/src/routes/auth.routes.ts
 import { Router } from 'express';
 import { AuthController } from '../controllers/auth.controller';
+import { authenticate } from '../middleware/auth.middleware';
 
 const router = Router();
-const authController = new AuthController();
 
-router.post('/register', authController.register);
-router.post('/login', authController.login);
-router.get('/profile/:userId', authController.getProfile);
+// Public routes
+router.post('/register', AuthController.register);
+router.post('/login', AuthController.login);
+router.post('/logout', AuthController.logout);
+
+// Protected routes
+router.get('/me', authenticate, AuthController.getCurrentUser);
 
 export default router;

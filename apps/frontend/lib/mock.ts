@@ -1,16 +1,29 @@
+import { Test } from "@/app/types/test";
+
+export const sampleTests: Test[] = [
+    {
+        id: '550e8400-e29b-41d4-a716-446655440001',
+        job_id: '550e8400-e29b-41d4-a716-446655440100',
+        title: 'Frontend Developer Assessment',
+        time_limit_minutes: 45,
+        pass_score: 70,
+        status: 'open',
+        questions_count: 5,
+        created_at: '2025-01-15T10:00:00Z',
+        updated_at: '2025-01-15T10:00:00Z',
+        questions: [],
+    },
+    // ... more sample data
+];
 
 
 export interface Job {
   id: number;
   title: string;
-  status: string;
   questionsCount: number;
   createdAt: string;
   updatedAt: string;
-  department: string;
-  location: string;
   description: string;
-  published: boolean;
 }
 
 export interface Question {
@@ -18,18 +31,6 @@ export interface Question {
   text: string;
 }
 
-export interface Test {
-  id: number;
-  jobId: number;
-  name: string;
-  questions: Question[];
-  duration: number;
-  passing: number;
-  status: 'closed' | 'open';
-  openAt?: Date; // Date object for scheduled open time
-  invitedEmails?: string[]; // Array of email addresses for invites
-  accessCode?: string; // Unique generated code for access
-}
 
 export interface Session {
   id: number;
@@ -46,97 +47,76 @@ export const sampleJobs: Job[] = [
   {
     id: 1,
     title: "Frontend Developer",
-    status: "active",
     questionsCount: 15,
     createdAt: "2025-01-15T10:00:00Z",
     updatedAt: "2025-11-01T14:30:00Z",
-    department: "Engineering",
-    location: "Remote",
     description: "Responsible for building user interfaces and client-side logic using modern web technologies.",
-    published: true
   },
   {
     id: 2,
     title: "Backend Engineer",
-    status: "active",
     questionsCount: 20,
     createdAt: "2025-02-20T09:15:00Z",
     updatedAt: "2025-10-28T16:45:00Z",
-    department: "Engineering",
-    location: "New York, NY",
     description: "Handles server-side logic, database management, and API development for scalable applications.",
-    published: true
-  },
-  {
-    id: 3,
-    title: "UI/UX Designer",
-    status: "draft",
-    questionsCount: 10,
-    createdAt: "2025-03-10T11:20:00Z",
-    updatedAt: "2025-11-14T09:00:00Z",
-    department: "Design",
-    location: "San Francisco, CA",
-    description: "Creates intuitive user experiences through wireframing, prototyping, and visual design.",
-    published: false
   },
 ];
 
-// Sample tests
-// Sample tests
-export const sampleTests: Test[] = [
-  {
-    id: 1, // ✅ ID đơn giản, dễ đọc
-    jobId: 1,
-    name: "React Fundamentals",
-    duration: 30,
-    passing: 10,
-    questions: [
-      {
-        id: 1,
-        text: "What is JSX?",
-      },
-      {
-        id: 2,
-        text: "What hook manages state in functional components?",
-      },
-      {
-        id: 3,
-        text: "What is the Virtual DOM?",
-      },
-    ],
-    status: 'open',
-    accessCode: 'REACT123',
-  },
-  {
-    id: 2, // ✅ ID tuần tự
-    jobId: 2,
-    name: "Node.js Basics",
-    duration: 45,
-    passing: 5,
-    questions: [
-      {
-        id: 1,
-        text: "What is Express.js?",
-      },
-    ],
-    status: 'closed',
-  },
-  {
-    id: 3, // ✅ ID tuần tự
-    jobId: 1,
-    name: "CSS Layout",
-    duration: 20,
-    passing: 1,
-    questions: [
-      {
-        id: 1,
-        text: "What does flexbox do?",
-      },
-    ],
-    status: 'closed',
-    accessCode: 'CSS456',
-  },
-];
+// // Sample tests
+// export const sampleTests: Test[] = [
+//   {
+//     id: 1, // ✅ ID đơn giản, dễ đọc
+//     jobId: 1,
+//     name: "React Fundamentals",
+//     duration: 30,
+//     passing: 10,
+//     questions: [
+//       {
+//         id: 1,
+//         text: "What is JSX?",
+//       },
+//       {
+//         id: 2,
+//         text: "What hook manages state in functional components?",
+//       },
+//       {
+//         id: 3,
+//         text: "What is the Virtual DOM?",
+//       },
+//     ],
+//     status: 'open',
+//     accessCode: 'REACT123',
+//   },
+//   {
+//     id: 2, // ✅ ID tuần tự
+//     jobId: 2,
+//     name: "Node.js Basics",
+//     duration: 45,
+//     passing: 5,
+//     questions: [
+//       {
+//         id: 1,
+//         text: "What is Express.js?",
+//       },
+//     ],
+//     status: 'closed',
+//   },
+//   {
+//     id: 3, // ✅ ID tuần tự
+//     jobId: 1,
+//     name: "CSS Layout",
+//     duration: 20,
+//     passing: 1,
+//     questions: [
+//       {
+//         id: 1,
+//         text: "What does flexbox do?",
+//       },
+//     ],
+//     status: 'closed',
+//     accessCode: 'CSS456',
+//   },
+// ];
 
 // Sample sessions
 export const sampleSessions: Session[] = [];
@@ -187,3 +167,5 @@ export const getStatusBadgeColor = (status: string): string => {
       return "bg-slate-50 text-slate-700 border-slate-200";
   }
 };
+export type { Test };
+

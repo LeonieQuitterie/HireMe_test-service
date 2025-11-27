@@ -1,161 +1,348 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import {
     ArrowLeft,
-    Plus,
-    Edit2,
-    Trash2,
-    Copy,
-    Clock,
-    MapPin,
     Briefcase,
-    FileText,
-    MessageSquare,
-    Target,
-    BarChart3,
     Calendar,
-    CheckCircle,
-    AlertCircle
-} from 'lucide-react';
+    MessageSquare,
+    FileText,
+    Plus,
+    Loader2,
+    Target,
+    Clock,
+    AlertCircle,
+} from "lucide-react";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { sampleJobs, sampleTests, Test } from "@/lib/mock";
 import { showToast } from "@/components/ui/toast-container";
 import { TestTable } from "@/components/test-management/test-table";
 import { CreateTestModal } from "@/components/test-management/create-test-modal";
-import { DeleteConfirmModal } from "@/components/test-management/delete-confirm-modal";
 import { ScheduleTestModal } from "@/components/test-management/schedule-test-modal";
+import { DeleteConfirmModal } from "@/components/test-management/delete-confirm-modal";
+import { ApiJobResponse, Job } from "@/app/types/job";
+import { ApiTestResponse, Test } from "@/app/types/test";
 
-export default function JobDetailsPage() {
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+
+export default function JobDetailsPage({ params }: { params: Promise<{ id: string }> }) {
     const router = useRouter();
-    const searchParams = useSearchParams();
-    const jobId = parseInt(searchParams.get("id") || "1");
+    const [jobId, setJobId] = useState<string>("");
 
-    const [job, setJob] = useState(sampleJobs.find(j => j.id === jobId));
-    const [tests, setTests] = useState<Test[]>(sampleTests.filter(t => t.jobId === jobId));
+    // States
+    const [job, setJob] = useState<Job | null>(null);
+    const [tests, setTests] = useState<Test[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
     const [createModalOpen, setCreateModalOpen] = useState(false);
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-    const [copyModalOpen, setCopyModalOpen] = useState(false);
     const [editingTest, setEditingTest] = useState<Test | null>(null);
-    const [schedulingTest, setSchedulingTest] = useState<Test | null>(null); // New state
-    const [deletingTestId, setDeletingTestId] = useState<number | null>(null);
-    const [scheduleModalOpen, setScheduleModalOpen] = useState(false); // New state
-    const [copyingTest, setCopyingTest] = useState<Test | null>(null);
+    const [schedulingTest, setSchedulingTest] = useState<Test | null>(null);
+    const [deletingTestId, setDeletingTestId] = useState<string | null>(null);
+    const [scheduleModalOpen, setScheduleModalOpen] = useState(false);
 
+    // Fetch job ID from params
     useEffect(() => {
-        const foundJob = sampleJobs.find(j => j.id === jobId);
-        if (!foundJob) {
-            router.push("/hr/jobs");
-            return;
-        }
-        setJob(foundJob);
-        setTests(sampleTests.filter(t => t.jobId === jobId));
+        params.then((resolvedParams) => {
+            setJobId(resolvedParams.id);
+        });
+    }, [params]);
+
+    // Map API response to Test interface
+    const mapApiResponseToTest = (apiTest: ApiTestResponse): Test => {
+        return {
+            id: apiTest.id,
+            job_id: jobId,
+            title: apiTest.testName,
+            time_limit_minutes: apiTest.timeLimit,
+            pass_score: 0, // Default, not returned by API
+            status: apiTest.status,
+            questions_count: apiTest.questionsCount,
+            created_at: apiTest.createdAt,
+            updated_at: apiTest.updatedAt,
+            job_name: apiTest.jobName,
+            questions: [],
+        };
+    };
+
+    // Map API response to Job interface
+    const mapApiResponseToJob = (apiJob: ApiJobResponse): Job => {
+        return {
+            id: apiJob.id,
+            hr_id: '', // Not returned by API
+            title: apiJob.title,
+            description: apiJob.description,
+            created_at: apiJob.createdAt,
+            updated_at: apiJob.updatedAt,
+            questions_count: apiJob.questionsCount,
+        };
+    };
+
+    // Fetch job details and tests
+    useEffect(() => {
+        if (!jobId) return;
+
+        const fetchJobDetails = async () => {
+            setLoading(true);
+            setError(null);
+
+            try {
+                const token = localStorage.getItem('access_token');
+
+                if (!token) {
+                    router.push('/auth/login');
+                    return;
+                }
+
+                // Fetch job details
+                const jobResponse = await fetch(`${API_BASE_URL}/api/jobs/${jobId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                if (!jobResponse.ok) {
+                    if (jobResponse.status === 401) {
+                        router.push('/auth/login');
+                        return;
+                    }
+                    throw new Error('Failed to fetch job details');
+                }
+
+                const jobResult = await jobResponse.json();
+
+                if (jobResult.success && jobResult.data.job) {
+                    const mappedJob = mapApiResponseToJob(jobResult.data.job);
+                    setJob(mappedJob);
+                } else {
+                    throw new Error(jobResult.message || 'Failed to fetch job');
+                }
+
+                // Fetch tests for this job
+                const testsResponse = await fetch(`${API_BASE_URL}/api/tests/job/${jobId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                if (testsResponse.ok) {
+                    const testsResult = await testsResponse.json();
+                    
+                    if (testsResult.success && testsResult.data.tests) {
+                        const mappedTests = testsResult.data.tests.map((apiTest: ApiTestResponse) =>
+                            mapApiResponseToTest(apiTest)
+                        );
+                        setTests(mappedTests);
+                    } else {
+                        setTests([]);
+                    }
+                } else {
+                    // If 404 or other error, just set empty tests
+                    console.log('No tests found for this job');
+                    setTests([]);
+                }
+
+            } catch (err) {
+                console.error('Error fetching data:', err);
+                setError(err instanceof Error ? err.message : 'Failed to fetch data');
+                showToast('Failed to load job details', 'error');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchJobDetails();
     }, [jobId, router]);
 
-    if (!job) return null;
+    // Format date helper
+    const formatDate = (dateString: string) => {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+        });
+    };
 
-
-    // New handler for schedule click
+    // Handlers
     const handleScheduleClick = (test: Test) => {
         setSchedulingTest(test);
         setScheduleModalOpen(true);
     };
 
-    // New handler for schedule submit
-    const handleScheduleSubmit = (updatedTest: Test) => {
-        setTests(tests.map((t) => (t.id === updatedTest.id ? updatedTest : t)));
-        setScheduleModalOpen(false);
-        setSchedulingTest(null);
-        showToast(`Test "${updatedTest.name}" scheduled successfully`, "success");
+    const handleScheduleSubmit = async (schedule: {
+        testId: string;
+        startTime: string;
+        emails: string[];
+    }) => {
+        try {
+            const token = localStorage.getItem('access_token');
+            if (!token) {
+                router.push('/auth/login');
+                return;
+            }
+
+            // Call API to schedule test
+            const response = await fetch(`${API_BASE_URL}/api/test-schedules/${schedule.testId}/schedule`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    start_time: schedule.startTime,
+                    emails: schedule.emails,
+                }),
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.message || 'Failed to schedule test');
+            }
+
+            if (result.success) {
+                // Update test status to 'scheduled' in local state
+                setTests(tests.map((t) => 
+                    t.id === schedule.testId 
+                        ? { ...t, status: 'scheduled' } 
+                        : t
+                ));
+
+                setScheduleModalOpen(false);
+                setSchedulingTest(null);
+
+                showToast(
+                    `Test scheduled successfully! Invitations sent to ${result.data.invited_count} candidates.`,
+                    "success"
+                );
+            } else {
+                throw new Error(result.message || 'Failed to schedule test');
+            }
+        } catch (err) {
+            console.error('Error scheduling test:', err);
+            showToast(
+                err instanceof Error ? err.message : 'Failed to schedule test',
+                'error'
+            );
+        }
     };
 
     const handleCreateTest = (newTest: Test) => {
         if (editingTest) {
             setTests(tests.map((t) => (t.id === editingTest.id ? newTest : t)));
             setEditingTest(null);
-            showToast(`Test "${newTest.name}" updated successfully`, "success");
+            showToast(`Test "${newTest.title}" updated successfully`, "success");
         } else {
-            setTests([...tests, { ...newTest, jobId }]);
-            showToast(`Test "${newTest.name}" created successfully`, "success");
+            setTests([...tests, newTest]);
+            showToast(`Test "${newTest.title}" created successfully`, "success");
         }
         setCreateModalOpen(false);
     };
 
-    const handleDelete = (testId: number) => {
+    const handleDelete = (testId: string) => {
         setDeletingTestId(testId);
         setDeleteModalOpen(true);
     };
 
-    const confirmDelete = () => {
-        if (deletingTestId) {
-            const testName = tests.find((t) => t.id === deletingTestId)?.name;
-            setTests(tests.filter((t) => t.id !== deletingTestId));
-            setDeleteModalOpen(false);
-            setDeletingTestId(null);
-            showToast(`Test "${testName}" deleted successfully`, "success");
+// D:\HireMeAI\apps\frontend\app\hr\jobs\[id]\page.tsx
+
+const confirmDelete = async () => {
+    if (!deletingTestId) return;
+
+    try {
+        const token = localStorage.getItem('access_token');
+        if (!token) {
+            router.push('/auth/login');
+            return;
         }
-    };
+
+        const response = await fetch(`${API_BASE_URL}/api/tests/${deletingTestId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.message || 'Failed to delete test');
+        }
+
+        // Success: remove from local state
+        const testName = tests.find((t) => t.id === deletingTestId)?.title;
+        setTests(tests.filter((t) => t.id !== deletingTestId));
+        setDeleteModalOpen(false);
+        setDeletingTestId(null);
+        showToast(`Test "${testName}" deleted successfully`, "success");
+
+    } catch (error) {
+        console.error('Error deleting test:', error);
+        showToast(
+            error instanceof Error ? error.message : 'Failed to delete test',
+            'error'
+        );
+        setDeleteModalOpen(false);
+        setDeletingTestId(null);
+    }
+};
 
     const handleEdit = (test: Test) => {
         setEditingTest(test);
         setCreateModalOpen(true);
     };
 
-    const handleCopy = (test: Test) => {
-        setCopyingTest(test);
-        setCopyModalOpen(true);
-    };
-
-    const confirmCopy = (targetJobId: number, newName: string) => {
-        if (copyingTest) {
-            const copiedTest: Test = {
-                ...copyingTest,
-                id: Date.now(),
-                jobId: targetJobId,
-                name: newName,
-            };
-            if (targetJobId === jobId) {
-                setTests([...tests, copiedTest]);
-            }
-            setCopyModalOpen(false);
-            setCopyingTest(null);
-            showToast(`Test copied successfully`, "success");
-        }
+    const handleViewTest = (test: Test) => {
+        router.push(`/hr/test/${test.id}`);
     };
 
     // Calculate stats
     const stats = {
         totalTests: tests.length,
-        totalQuestions: tests.reduce((sum, t) => sum + t.questions.length, 0),
+        totalQuestions: tests.reduce((sum, t) => sum + (t.questions_count || 0), 0),
         avgDuration: tests.length > 0
-            ? Math.round(tests.reduce((sum, t) => sum + t.duration, 0) / tests.length)
+            ? Math.round(tests.reduce((sum, t) => sum + t.time_limit_minutes, 0) / tests.length)
             : 0,
-        avgDifficulty: () => {
-            if (tests.length === 0) return "N/A";
-            const difficultyMap = { Easy: 1, Medium: 2, Hard: 3 };
-
-        }
     };
 
-    const getStatusColor = (status: string) => {
-        switch (status) {
-            case 'Active':
-                return 'bg-green-100 text-green-800 border-green-200';
-            case 'Draft':
-                return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-            case 'Closed':
-                return 'bg-red-100 text-red-800 border-red-200';
-            default:
-                return 'bg-gray-100 text-gray-800 border-gray-200';
-        }
-    };
-
-    // ✅ Thêm handler này
-    const handleViewTest = (test: Test) => {
-        router.push(`/hr/test/${test.id}`)
+    // Loading state
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 to-pink-100 flex items-center justify-center">
+                <div className="text-center">
+                    <Loader2 className="w-12 h-12 animate-spin text-indigo-600 mx-auto mb-4" />
+                    <p className="text-gray-600 font-medium">Loading job details...</p>
+                </div>
+            </div>
+        );
     }
+
+    // Error state
+    if (error || !job) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 to-pink-100 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <FileText className="w-8 h-8 text-red-600" />
+                    </div>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">Job Not Found</h2>
+                    <p className="text-gray-600 mb-6">{error || 'The job you are looking for does not exist.'}</p>
+                    <button
+                        onClick={() => router.push("/hr/jobs")}
+                        className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium"
+                    >
+                        <ArrowLeft className="w-4 h-4" />
+                        Back to Jobs
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 to-pink-100">
             <div className="max-w-7xl mx-auto px-4 py-8">
@@ -184,39 +371,30 @@ export default function JobDetailsPage() {
                                     </div>
                                 </div>
                             </div>
-                            <Badge className={`${getStatusColor(job.status)} border font-semibold text-sm px-3 py-1`}>
-                                {job.status}
-                            </Badge>
                         </div>
 
                         {/* Quick Info */}
                         <div className="flex flex-wrap gap-4 mt-4">
-
-                            <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-lg">
-                                <Briefcase className="w-4 h-4" />
-                                <span className="text-sm font-medium">{job.department}</span>
-                            </div>
                             <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-lg">
                                 <Calendar className="w-4 h-4" />
-                                <span className="text-sm font-medium">Created {job.createdAt}</span>
+                                <span className="text-sm font-medium">Created {formatDate(job.created_at)}</span>
                             </div>
                             <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-lg">
                                 <MessageSquare className="w-4 h-4" />
-                                <span className="text-sm font-medium">{job.questionsCount || 0} Questions</span>
+                                <span className="text-sm font-medium">{job.questions_count || 0} Questions</span>
                             </div>
                         </div>
                     </div>
 
                     {/* Job Details Content */}
-                    <div className="p-6 grid  gap-6">
+                    <div className="p-6 grid gap-6">
                         <div>
                             <h3 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
                                 <FileText className="w-5 h-5 text-indigo-600" />
                                 Description
                             </h3>
-                            <p className="text-gray-700 leading-relaxed">{job.description}</p>
+                            <p className="text-gray-700 leading-relaxed">{job.description || 'No description provided'}</p>
                         </div>
-
                     </div>
                 </Card>
 
@@ -243,7 +421,7 @@ export default function JobDetailsPage() {
                     </div>
 
                     {/* Test Stats Cards */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                         <Card className="p-4 bg-white/80 backdrop-blur-sm border-indigo-200 hover:shadow-lg transition-all duration-300">
                             <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
@@ -279,8 +457,6 @@ export default function JobDetailsPage() {
                                 </div>
                             </div>
                         </Card>
-
-
                     </div>
                 </div>
 
@@ -312,7 +488,7 @@ export default function JobDetailsPage() {
                             onEdit={handleEdit}
                             onDelete={handleDelete}
                             onScheduleClick={handleScheduleClick}
-                            onView={handleViewTest} // ✅ Thêm prop này
+                            onView={handleViewTest}
                             onCreateNew={() => {
                                 setEditingTest(null);
                                 setCreateModalOpen(true);
@@ -331,26 +507,27 @@ export default function JobDetailsPage() {
                 }}
                 onSubmit={handleCreateTest}
                 editingTest={editingTest || undefined}
+                jobId={jobId}
             />
 
-            {/* New Schedule Modal */}
-            <ScheduleTestModal
-                isOpen={scheduleModalOpen}
-                onClose={() => {
-                    setScheduleModalOpen(false);
-                    setSchedulingTest(null);
-                }}
-                onSubmit={handleScheduleSubmit}
-                test={schedulingTest || undefined}
-            />
+            {schedulingTest && (
+                <ScheduleTestModal
+                    isOpen={scheduleModalOpen}
+                    onClose={() => {
+                        setScheduleModalOpen(false);
+                        setSchedulingTest(null);
+                    }}
+                    onSubmit={handleScheduleSubmit}
+                    test={schedulingTest}
+                />
+            )}
 
             <DeleteConfirmModal
                 isOpen={deleteModalOpen}
-                testName={tests.find((t) => t.id === deletingTestId)?.name || "Test"}
+                testName={tests.find((t) => t.id === deletingTestId)?.title || "Test"}
                 onConfirm={confirmDelete}
                 onCancel={() => setDeleteModalOpen(false)}
             />
-
         </div>
     );
 }

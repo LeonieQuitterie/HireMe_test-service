@@ -1,19 +1,12 @@
 'use client'
 
-import { useState } from 'react'
-import { Search, Plus, Edit2, Trash2, Eye, BarChart3, TrendingUp, Users, Briefcase, MapPin, Calendar, FileText, MessageSquare, CheckCircle, Clock, PieChart } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { Search, Plus, Trash2, BarChart3, Briefcase, FileText, MessageSquare, CheckCircle, PieChart } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select'
 import {
     Dialog,
     DialogContent,
@@ -30,149 +23,105 @@ import {
 } from '@/components/ui/alert-dialog'
 import { JobTable } from '@/components/job/job-table'
 import { JobForm } from '@/components/job/job-form'
+import { Job } from '@/app/types/job'
 
 
-const INITIAL_JOBS = [
-    {
-        id: 1,
-        title: 'Software Engineer',
-        status: 'Active',
-        questionsCount: 12,
-        createdAt: '2025-11-01',
-        updatedAt: '2025-11-10',
-        department: 'IT',
-        location: 'Ho Chi Minh City',
-        description: 'We are looking for a skilled software engineer...',
-        published: true,
-    },
-    {
-        id: 2,
-        title: 'Product Manager',
-        status: 'Active',
-        questionsCount: 8,
-        createdAt: '2025-11-02',
-        updatedAt: '2025-11-12',
-        department: 'Marketing',
-        location: 'Hanoi',
-        description: 'Lead product strategy and roadmap...',
-        published: true,
-    },
-    {
-        id: 3,
-        title: 'UI/UX Designer',
-        status: 'Draft',
-        questionsCount: 0,
-        createdAt: '2025-11-03',
-        updatedAt: '2025-11-03',
-        department: 'IT',
-        location: 'Da Nang',
-        description: 'Design beautiful and intuitive interfaces...',
-        published: false,
-    },
-    {
-        id: 4,
-        title: 'Sales Executive',
-        status: 'Active',
-        questionsCount: 15,
-        createdAt: '2025-11-04',
-        updatedAt: '2025-11-13',
-        department: 'Sales',
-        location: 'Ho Chi Minh City',
-        description: 'Drive revenue growth and manage client relationships...',
-        published: true,
-    },
-    {
-        id: 5,
-        title: 'HR Specialist',
-        status: 'Closed',
-        questionsCount: 10,
-        createdAt: '2025-10-20',
-        updatedAt: '2025-10-25',
-        department: 'HR',
-        location: 'Hanoi',
-        description: 'Support recruitment and employee development...',
-        published: true,
-    },
-    {
-        id: 6,
-        title: 'Data Analyst',
-        status: 'Active',
-        questionsCount: 7,
-        createdAt: '2025-11-05',
-        updatedAt: '2025-11-11',
-        department: 'IT',
-        location: 'Ho Chi Minh City',
-        description: 'Analyze data and provide business insights...',
-        published: true,
-    },
-    {
-        id: 7,
-        title: 'Frontend Developer',
-        status: 'Active',
-        questionsCount: 9,
-        createdAt: '2025-11-06',
-        updatedAt: '2025-11-14',
-        department: 'IT',
-        location: 'Da Nang',
-        description: 'Build responsive web applications...',
-        published: true,
-    },
-    {
-        id: 8,
-        title: 'Marketing Specialist',
-        status: 'Draft',
-        questionsCount: 3,
-        createdAt: '2025-11-07',
-        updatedAt: '2025-11-07',
-        department: 'Marketing',
-        location: 'Hanoi',
-        description: 'Create and execute marketing campaigns...',
-        published: false,
-    },
-]
 
-interface Job {
-    id: number
-    title: string
-    status: string
-    questionsCount: number
-    createdAt: string
-    updatedAt: string
-    department: string
-    location: string
-    description: string
-    published: boolean
-}
 
 interface FormData {
     title: string
-    department: string
-    location: string
     description: string
-    published: boolean
 }
 
 export default function JobPage() {
-    const [jobs, setJobs] = useState<Job[]>(INITIAL_JOBS)
+    const [jobs, setJobs] = useState<Job[]>([])
+
+    const [loading, setLoading] = useState(true)
+    const [error, setError] = useState<string | null>(null)
     const [searchQuery, setSearchQuery] = useState('')
-    const [filterStatus, setFilterStatus] = useState('All')
-    const [filterDepartment, setFilterDepartment] = useState('All')
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [editingJob, setEditingJob] = useState<Job | null>(null)
-    const [deleteId, setDeleteId] = useState<number | null>(null)
+    const [deleteId, setDeleteId] = useState<string | null>(null)
     const [currentPage, setCurrentPage] = useState(1)
     const itemsPerPage = 5
 
-    // Get unique departments for filter
-    const departments = ['All', ...Array.from(new Set(jobs.map(job => job.department)))]
+    // Fetch the list of jobs belonging to the current HR user
+    const fetchJobs = async () => {
+        try {
+            setLoading(true);
+
+            // Retrieve access token from localStorage
+            const token = localStorage.getItem('access_token');
+
+            if (!token) {
+                setError('Please log in again');
+                setLoading(false);
+                return;
+            }
+
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/jobs/my`, {
+                method: 'GET',
+                credentials: 'include', // Keep if backend also uses cookies
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`, // Critical: Send JWT token
+                },
+            });
+
+            // Handle token expiration or invalid token (401)
+            if (!res.ok) {
+                if (res.status === 401) {
+                    localStorage.removeItem('access_token');
+                    localStorage.removeItem('user');
+                    window.location.href = '/auth/login';
+                    return;
+                }
+                throw new Error('Failed to fetch jobs');
+            }
+
+            const result = await res.json();
+
+            if (!result.success) {
+                throw new Error(result.message || 'Failed to fetch jobs');
+            }
+
+            // Format data to match frontend Job interface
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const formattedJobs: Job[] = result.data.jobs.map((job: any) => ({
+                id: job.id,
+                title: job.title,
+                description: job.description ?? null,
+                questionsCount: job.questionsCount,
+                createdAt: new Date(job.createdAt).toISOString().split('T')[0],
+                updatedAt: new Date(job.updatedAt).toISOString().split('T')[0],
+            }));
+
+            setJobs(formattedJobs);
+            setError(null);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (err: any) {
+            setError(err.message || 'Connection error');
+            console.error('Fetch jobs error:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+    // Load lần đầu
+    useEffect(() => {
+        fetchJobs()
+    }, [])
+
+    // Refresh sau khi tạo/sửa/xóa
+    const refreshJobs = () => {
+        fetchJobs()
+    }
+
+
+
 
     const filteredJobs = jobs.filter((job) => {
-        const matchesSearch = job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            job.department.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            job.location.toLowerCase().includes(searchQuery.toLowerCase())
-        const matchesStatusFilter = filterStatus === 'All' || job.status === filterStatus
-        const matchesDepartmentFilter = filterDepartment === 'All' || job.department === filterDepartment
-        return matchesSearch && matchesStatusFilter && matchesDepartmentFilter
+        const matchesSearch = job.title.toLowerCase().includes(searchQuery.toLowerCase())
+        return matchesSearch
     })
 
     const paginatedJobs = filteredJobs.slice(
@@ -195,86 +144,96 @@ export default function JobPage() {
         setEditingJob(null)
     }
 
-    const handleSaveJob = (formData: FormData) => {
-        if (editingJob) {
-            setJobs(jobs.map((job) =>
-                job.id === editingJob.id
-                    ? {
-                        ...job,
-                        ...formData,
-                        status: formData.published ? 'Active' : 'Draft',
-                        updatedAt: new Date().toISOString().split('T')[0],
-                    }
-                    : job
-            ))
+    const handleSaveJob = async (newJobFromAPI: Job) => {
+        // Nếu là tạo mới → thêm vào đầu danh sách
+        if (!editingJob) {
+            setJobs(prev => [newJobFromAPI, ...prev])
         } else {
-            const newJob: Job = {
-                id: Math.max(...jobs.map((j) => j.id), 0) + 1,
-                ...formData,
-                questionsCount: 0,
-                createdAt: new Date().toISOString().split('T')[0],
-                updatedAt: new Date().toISOString().split('T')[0],
-                status: formData.published ? 'Active' : 'Draft',
-            }
-            setJobs([newJob, ...jobs])
+            // Nếu là edit → cập nhật job cũ
+            setJobs(prev => prev.map(j => j.id === newJobFromAPI.id ? newJobFromAPI : j))
         }
         handleCloseModal()
+        fetchJobs()
     }
 
-    const handleDeleteJob = (id: number) => {
+    const handleDeleteJob = (id: string) => {
         setJobs(jobs.filter((job) => job.id !== id))
         setDeleteId(null)
     }
 
-    const getStatusColor = (status: string) => {
-        switch (status) {
-            case 'Active':
-                return 'bg-green-100 text-green-800 border-green-200'
-            case 'Draft':
-                return 'bg-yellow-100 text-yellow-800 border-yellow-200'
-            case 'Closed':
-                return 'bg-red-100 text-red-800 border-red-200'
-            default:
-                return 'bg-gray-100 text-gray-800 border-gray-200'
+    // ĐẶT HÀM NÀY Ở ĐÂY — trong file page.tsx
+    const handleDeleteConfirm = async () => {
+        if (!deleteId) return
+
+        const token = localStorage.getItem('access_token')
+        if (!token) {
+            alert('You are not logged in!')
+            setDeleteId(null)
+            return
+        }
+
+        try {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/jobs/${deleteId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+            })
+
+            const result = await res.json()
+
+            if (!res.ok || !result.success) {
+                throw new Error(result.message || 'Failed to delete job')
+            }
+
+            // Xóa khỏi UI
+            setJobs(prev => prev.filter(job => job.id !== deleteId))
+            setDeleteId(null)
+
+            alert('Job deleted successfully!')
+
+            // Optional: refresh lại từ server
+            // fetchJobs()
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (err: any) {
+            console.error('Delete job error:', err)
+            alert(err.message || 'Failed to delete job')
         }
     }
-
     // Calculate statistics
     const stats = {
         total: jobs.length,
-        active: jobs.filter(j => j.status === 'Active' && j.published).length,
-        totalQuestions: jobs.reduce((sum, j) => sum + j.questionsCount, 0),
-        avgQuestions: jobs.length > 0 ? Math.round(jobs.reduce((sum, j) => sum + j.questionsCount, 0) / jobs.length) : 0
+        totalQuestions: jobs.reduce((sum, j) => sum + (j.questions_count ?? 0), 0),
+        avgQuestions: jobs.length > 0 ? Math.round(jobs.reduce((sum, j) => sum + (j.questions_count ?? 0), 0) / jobs.length) : 0
     }
 
     // Analytics data
     const questionsDistribution = {
-        none: jobs.filter(j => j.questionsCount === 0).length,
-        few: jobs.filter(j => j.questionsCount >= 1 && j.questionsCount <= 5).length,
-        medium: jobs.filter(j => j.questionsCount >= 6 && j.questionsCount <= 10).length,
-        many: jobs.filter(j => j.questionsCount > 10).length,
+        none: jobs.filter(j => (j.questions_count ?? 0) === 0).length,
+        few: jobs.filter(j => (j.questions_count ?? 0) >= 1 && (j.questions_count ?? 0) <= 5).length,
+        medium: jobs.filter(j => (j.questions_count ?? 0) >= 6 && (j.questions_count ?? 0) <= 10).length,
+        many: jobs.filter(j => (j.questions_count ?? 0) > 10).length,
     }
 
-    const readyJobs = jobs.filter(j => j.questionsCount > 0 && j.published).length
+    const readyJobs = jobs.filter(j => (j.questions_count ?? 0) > 0).length
     const readyPercentage = jobs.length > 0 ? Math.round((readyJobs / jobs.length) * 100) : 0
 
-    const recentJobs = [...jobs].sort((a, b) =>
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    ).slice(0, 5)
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="text-xl">Loading recruitment list....</div>
+            </div>
+        )
+    }
 
-    const recentUpdates = [...jobs].sort((a, b) =>
-        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
-    ).slice(0, 5)
-
-    const departmentStats = departments
-        .filter(d => d !== 'All')
-        .map(dept => ({
-            name: dept,
-            count: jobs.filter(j => j.department === dept).length
-        }))
-        .sort((a, b) => b.count - a.count)
-
-    const maxDeptCount = Math.max(...departmentStats.map(d => d.count), 1)
+    if (error) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="text-red-600 text-xl">{error}</div>
+            </div>
+        )
+    }
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 to-pink-100">
@@ -310,7 +269,7 @@ export default function JobPage() {
                                     <CheckCircle className="w-5 h-5 text-green-600" />
                                 </div>
                                 <div>
-                                    <p className="text-2xl font-bold text-green-600">{stats.active}</p>
+                                    <p className="text-2xl font-bold text-green-600">{stats.total}</p>
                                     <p className="text-xs text-gray-600">Active Tests</p>
                                 </div>
                             </div>
@@ -366,43 +325,14 @@ export default function JobPage() {
                                 />
                             </div>
 
-                            {/* <Select value={filterStatus} onValueChange={(value) => {
-                                setFilterStatus(value)
-                                setCurrentPage(1)
-                            }}>
-                                <SelectTrigger className="w-full lg:w-36 h-11 border-indigo-200 focus:border-indigo-500 focus:ring-indigo-500 bg-white">
-                                    <SelectValue placeholder="Status" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="All">All Status</SelectItem>
-                                    <SelectItem value="Active">Active</SelectItem>
-                                    <SelectItem value="Draft">Draft</SelectItem>
-                                    <SelectItem value="Closed">Closed</SelectItem>
-                                </SelectContent>
-                            </Select> */}
 
-                            {/* <Select value={filterDepartment} onValueChange={(value) => {
-                                setFilterDepartment(value)
-                                setCurrentPage(1)
-                            }}>
-                                <SelectTrigger className="w-full lg:w-40 h-11 border-indigo-200 focus:border-indigo-500 focus:ring-indigo-500 bg-white">
-                                    <SelectValue placeholder="Department" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {departments.map(dept => (
-                                        <SelectItem key={dept} value={dept}>
-                                            {dept === 'All' ? 'All Departments' : dept}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select> */}
                         </div>
 
                         {/* Results count */}
                         <div className="mt-3 text-sm text-gray-600 flex items-center gap-2">
                             <FileText className="w-4 h-4" />
                             Showing {filteredJobs.length} {filteredJobs.length === 1 ? 'job' : 'jobs'}
-                            {(searchQuery || filterStatus !== 'All' || filterDepartment !== 'All') && (
+                            {(searchQuery) && (
                                 <span className="text-indigo-600 font-medium">
                                     (filtered from {jobs.length} total)
                                 </span>
@@ -422,11 +352,11 @@ export default function JobPage() {
                                 </div>
                                 <h3 className="text-lg font-semibold text-gray-700 mb-2">No jobs found</h3>
                                 <p className="text-gray-500 mb-6">
-                                    {searchQuery || filterStatus !== 'All' || filterDepartment !== 'All'
+                                    {searchQuery
                                         ? "Try adjusting your search or filter criteria"
                                         : "Get started by creating your first job posting"}
                                 </p>
-                                {!searchQuery && filterStatus === 'All' && filterDepartment === 'All' && (
+                                {!searchQuery && (
                                     <Button
                                         onClick={() => handleOpenModal()}
                                         className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
@@ -442,7 +372,6 @@ export default function JobPage() {
                                     jobs={paginatedJobs}
                                     onEdit={handleOpenModal}
                                     onDelete={(id) => setDeleteId(id)}
-                                    getStatusColor={getStatusColor}
                                 />
 
                                 {/* Pagination */}
@@ -544,35 +473,6 @@ export default function JobPage() {
                             </CardContent>
                         </Card>
 
-                        {/* Department Overview
-                        <Card className="bg-white/80 backdrop-blur-sm border-blue-200">
-                            <CardHeader className="pb-3">
-                                <CardTitle className="text-lg flex items-center gap-2">
-                                    <BarChart3 className="w-5 h-5 text-blue-600" />
-                                    Department Overview
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-3">
-                                {departmentStats.map((dept, index) => (
-                                    <div key={dept.name} className="space-y-1">
-                                        <div className="flex justify-between text-sm">
-                                            <span className="text-gray-600">{dept.name}</span>
-                                            <span className="font-semibold text-blue-600">{dept.count}</span>
-                                        </div>
-                                        <div className="w-full bg-gray-200 rounded-full h-2">
-                                            <div
-                                                className="bg-gradient-to-r from-blue-400 to-blue-600 h-2 rounded-full transition-all duration-300"
-                                                style={{ width: `${(dept.count / maxDeptCount) * 100}%` }}
-                                            />
-                                        </div>
-                                    </div>
-                                ))}
-                                {departmentStats.length === 0 && (
-                                    <p className="text-sm text-gray-500 text-center py-4">No departments yet</p>
-                                )}
-                            </CardContent>
-                        </Card> */}
-
 
                     </div>
                 </div>
@@ -592,7 +492,7 @@ export default function JobPage() {
                         </p>
                     </DialogHeader>
                     <JobForm
-                        job={editingJob}
+                        job={editingJob || undefined}
                         onSave={handleSaveJob}
                         onCancel={handleCloseModal}
                     />
@@ -615,18 +515,20 @@ export default function JobPage() {
                             </AlertDialogDescription>
                         </div>
                     </div>
+
                     <div className="flex justify-end gap-3 mt-6">
                         <AlertDialogCancel className="border-gray-300 hover:bg-gray-50">
                             Cancel
                         </AlertDialogCancel>
                         <AlertDialogAction
-                            onClick={() => deleteId !== null && handleDeleteJob(deleteId)}
+                            onClick={handleDeleteConfirm}
                             className="bg-red-600 hover:bg-red-700 text-white shadow-lg"
                         >
                             <Trash2 className="w-4 h-4 mr-2" />
                             Delete Job
                         </AlertDialogAction>
                     </div>
+
                 </AlertDialogContent>
             </AlertDialog>
         </div>

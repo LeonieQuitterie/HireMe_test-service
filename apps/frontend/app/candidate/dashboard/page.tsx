@@ -32,17 +32,58 @@ import {
     ChevronDown
 } from "lucide-react"
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+
 export default function HomePage() {
     const [roomCode, setRoomCode] = useState("")
     const router = useRouter()
 
-    const handleJoinRoom = () => {
-        if (roomCode.length === 6 && /^\d{6}$/.test(roomCode)) {
-            router.push(`/candidate/test?room=${roomCode}`)
-        } else {
-            alert("Please enter a valid 6-digit room code.")
-        }
+    // const handleJoinRoom = () => {
+    //     if (roomCode.length === 6 && /^\d{6}$/.test(roomCode)) {
+    //         router.push(`/candidate/test?room=${roomCode}`)
+    //     } else {
+    //         alert("Please enter a valid 6-digit room code.")
+    //     }
+    // }
+
+  const handleJoinRoom = async () => {
+    if (roomCode.length !== 6 || !/^\d{6}$/.test(roomCode)) {
+        alert("Please enter a valid 6-digit room code.");
+        return;
     }
+
+    try {
+        const token = localStorage.getItem('access_token');
+
+        if (!token) {
+            alert("Please login first");
+            router.push('/auth/login');
+            return;
+        }
+
+        const response = await fetch(`${API_BASE_URL}/api/test-access/verify`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ code: roomCode }),
+        });
+
+        const result = await response.json();
+
+        console.log('Verify result:', result); // Debug
+
+        if (result.success) {
+            router.push(`/candidate/test/${result.data.test_id}`);
+        } else {
+            alert(result.message || 'Failed to verify code');
+        }
+    } catch (error) {
+        console.error('Join room error:', error);
+        alert('An error occurred. Please try again.');
+    }
+};
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 to-pink-100 relative overflow-hidden">
@@ -83,7 +124,7 @@ export default function HomePage() {
                 {/* Process Steps & Join Room Section */}
                 <div className="max-w-6xl mx-auto mb-20 space-y-8">
                     {/* Join Room Card */}
-       
+
                     <div className="flex justify-center">
                         <Card className="w-full max-w-2xl hover:shadow-2xl transition-all duration-500 border-2 border-indigo-300 hover:border-purple-500 hover:scale-105 bg-white/80 backdrop-blur-sm"> {/* Giảm max-w-5xl → max-w-3xl */}
                             <CardHeader className="text-center pb-2">
@@ -117,7 +158,7 @@ export default function HomePage() {
                                                 }
                                             }}
                                             placeholder="0"
-                                            className="text-center text-5xl font-bold font-mono w-15 h-24 rounded-xl bg-gradient-to-br from-indigo-50 to-purple-50 border-2 border-indigo-300 focus:border-purple-500 focus:ring-4 focus:ring-purple-200 text-indigo-700 shadow-md hover:shadow-lg transition-all duration-200" 
+                                            className="text-center text-5xl font-bold font-mono w-15 h-24 rounded-xl bg-gradient-to-br from-indigo-50 to-purple-50 border-2 border-indigo-300 focus:border-purple-500 focus:ring-4 focus:ring-purple-200 text-indigo-700 shadow-md hover:shadow-lg transition-all duration-200"
                                         />
                                     ))}
                                 </div>
@@ -424,7 +465,7 @@ export default function HomePage() {
                     </div>
                 </div>
 
-              
+
             </div>
 
 
