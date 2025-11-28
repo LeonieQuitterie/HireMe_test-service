@@ -1,5 +1,6 @@
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { supabase } from '../config/supabase';
+import { TranscriptionService } from './transcription.service';
 
 export class SubmissionService {
     private static client: S3Client;
@@ -21,7 +22,7 @@ export class SubmissionService {
     }
 
     static async uploadVideoToR2(
-        file: Express.Multer.File,  // ← Đổi từ Buffer thành Express.Multer.File
+        file: Express.Multer.File,
         candidateId: string,
         testId: string,
         questionId: string
@@ -34,8 +35,8 @@ export class SubmissionService {
             new PutObjectCommand({
                 Bucket: this.bucketName,
                 Key: fileName,
-                Body: file.buffer,                           // vẫn dùng buffer
-                ContentType: file.mimetype || 'video/webm',   // giờ hợp lệ rồi
+                Body: file.buffer,
+                ContentType: file.mimetype || 'video/webm',
             })
         );
 
@@ -65,7 +66,7 @@ export class SubmissionService {
         return !!data;
     }
 
-    // CHỈ INSERT NHỮNG CỘT THẬT SỰ TỒN TẠI, KHÔNG ĐỘNG ĐẾN SCORE
+    // CHỈ GIỮ LẠI 1 FUNCTION createSubmission
     static async createSubmission(
         testId: string,
         candidateId: string,
@@ -75,15 +76,13 @@ export class SubmissionService {
             durationSeconds?: number;
         }>
     ) {
-        // 1. Tạo submission (chỉ những cột chắc chắn có)
+        // 1. Tạo submission
         const { data: submission, error: subErr } = await supabase
             .from('test_submissions')
             .insert({
                 test_id: testId,
                 candidate_id: candidateId,
                 submitted_at: new Date().toISOString(),
-                // nếu bạn có thêm cột scoring_status thì thêm ở đây:
-                // scoring_status: 'pending',
             })
             .select('id')
             .single();
@@ -92,12 +91,13 @@ export class SubmissionService {
             throw new Error(`Không thể tạo submission: ${subErr?.message || 'unknown'}`);
         }
 
-        // 2. Tạo answers
+        // 2. Tạo answers với transcript_status = 'pending'
         const answerPayload = answers.map((a) => ({
             submission_id: submission.id,
             question_id: a.questionId,
             video_url: a.videoUrl,
             duration_seconds: a.durationSeconds ?? null,
+            transcript_status: 'pending', // ← Thêm để tự động transcribe
         }));
 
         const { data: insertedAnswers, error: ansErr } = await supabase
@@ -106,9 +106,23 @@ export class SubmissionService {
             .select('id, question_id, video_url');
 
         if (ansErr) {
-            // Rollback submission nếu lưu answer lỗi
+            // Rollback submission nếu lỗi
             await supabase.from('test_submissions').delete().eq('id', submission.id);
             throw new Error(`Lưu câu trả lời thất bại: ${ansErr.message}`);
+        }
+
+        const TEST_VIDEO_URL = 'https://pub-bfdecf5d8cac4a05a979137be6ce403f.r2.dev/videos/snaptik.vn_Y5HSd.mp4';
+
+
+        // 3. AUTO TRANSCRIBE (async, không chờ kết quả)
+        // for (const answer of insertedAnswers) {
+        //     TranscriptionService.processAnswer(answer.id, answer.video_url)
+        //         .catch(err => console.error(`Transcription error for ${answer.id}:`, err));
+        // }
+
+        for (const answer of insertedAnswers) {
+            TranscriptionService.processAnswer(answer.id, TEST_VIDEO_URL)
+                .catch(err => console.error(`Transcription error for ${answer.id}:`, err));
         }
 
         return {
