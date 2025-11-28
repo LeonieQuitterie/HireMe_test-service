@@ -15,6 +15,7 @@ import scheduledRoutes from './routes/test-schedule.routes';         // thêm
 import submissionRoutes from './routes/submission.routes';
 import userRoutes from './routes/user.routes';
 import transcriptionRoutes from './routes/transcription.routes';
+import scheduleRoutes from './routes/schedule.routes';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -35,6 +36,7 @@ app.use('/api/test-schedules', scheduledRoutes);     // HR lên lịch
 app.use('/api/submissions', submissionRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/transcription', transcriptionRoutes);
+app.use('/api/schedules', scheduleRoutes);
 
 // Health check
 app.get('/health', (req, res) => {

@@ -8,7 +8,8 @@ import {
     Users,
     Briefcase,
     FileText,
-    User
+    User,
+    CalendarCheck
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -69,6 +70,21 @@ export function NavbarHR() {
                                 Tests
                             </Button>
                         </Link>
+
+                        <Link href="/hr/interviews">
+                            <Button
+                                variant={isActive("/hr/interviews") ? "default" : "ghost"}
+                                size="sm"
+                                className={cn(
+                                    isActive("/hr/interviews") && "bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-lg"
+                                )}
+                            >
+                                <CalendarCheck className="w-4 h-4 mr-2" />
+                                Test Calendar
+                            </Button>
+                        </Link>
+
+
 
                         <Link href="/hr/profile">
                             <Button
