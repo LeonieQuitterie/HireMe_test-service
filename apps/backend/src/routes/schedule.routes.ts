@@ -13,6 +13,14 @@ router.get(
     TestScheduleController.getMyTestSchedules
 );
 
+// Thêm invites vào schedule có sẵn
+router.post(
+    '/:scheduleId/invite',
+    authenticate,
+    restrictTo('HR'),
+    TestScheduleController.addInvitesToSchedule
+);
+
 // Xóa lịch test theo schedule_id
 router.delete(
     '/:scheduleId',

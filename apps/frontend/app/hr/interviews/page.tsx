@@ -117,7 +117,7 @@ export default function ScheduledTestsPage() {
     setShowAddInviteModal(true)
   }
 
-  
+
 
   const handleCancelSchedule = async (scheduleId: string) => {
     if (!confirm('Are you sure you want to cancel this schedule? This action cannot be undone.')) {
@@ -144,45 +144,45 @@ export default function ScheduledTestsPage() {
     }
   }
 
- const handleSubmitInvites = async () => {
-  if (!selectedSchedule || !newEmails.trim()) return
+  const handleSubmitInvites = async () => {
+    if (!selectedSchedule || !newEmails.trim()) return
 
-  try {
-    const token = localStorage.getItem('access_token')
-    const emails = newEmails.split('\n').map(e => e.trim()).filter(e => e)
+    try {
+      const token = localStorage.getItem('access_token')
+      const emails = newEmails.split('\n').map(e => e.trim()).filter(e => e)
 
-    // Validate có ít nhất 1 email
-    if (emails.length === 0) {
-      alert('Please enter at least one email address')
-      return
+      // Validate có ít nhất 1 email
+      if (emails.length === 0) {
+        alert('Please enter at least one email address')
+        return
+      }
+
+      const response = await fetch(`${API_BASE_URL}/api/schedules/${selectedSchedule.schedule_id}/invite`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ emails }),
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        alert(result.message || 'Invites sent successfully')
+        setNewEmails("")
+        setShowAddInviteModal(false)
+        setShowInvitesModal(true)
+        // Refresh schedules để cập nhật số lượng invited
+        await fetchSchedules()
+      } else {
+        alert(result.message || 'Failed to send invites')
+      }
+    } catch (err) {
+      console.error('Error:', err)
+      alert('Failed to send invites')
     }
-
-    const response = await fetch(`${API_BASE_URL}/api/schedules/${selectedSchedule.schedule_id}/invite`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ emails }),
-    })
-
-    const result = await response.json()
-    
-    if (result.success) {
-      alert(result.message || 'Invites sent successfully')
-      setNewEmails("")
-      setShowAddInviteModal(false)
-      setShowInvitesModal(true)
-      // Refresh schedules để cập nhật số lượng invited
-      await fetchSchedules()
-    } else {
-      alert(result.message || 'Failed to send invites')
-    }
-  } catch (err) {
-    console.error('Error:', err)
-    alert('Failed to send invites')
   }
-}
 
   const stats = {
     total: schedules.length,
@@ -384,7 +384,7 @@ export default function ScheduledTestsPage() {
                           <span>View</span>
                         </button>
 
-               
+
 
                         <button
                           onClick={() => handleCancelSchedule(schedule.schedule_id)}
@@ -511,7 +511,7 @@ export default function ScheduledTestsPage() {
       </AnimatePresence>
 
       {/* Add Invites Modal */}
-      {/* Add Invites Modal */}
+
       <AnimatePresence>
         {showAddInviteModal && selectedSchedule && (
           <div
