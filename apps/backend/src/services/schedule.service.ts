@@ -19,6 +19,21 @@ export interface TestScheduleWithStats {
     total_submitted: number;
     candidates: CandidateInSchedule[];
 }
+// ⚠️ THÊM INTERFACE NÀY
+export interface AddInvitesResult {
+    success: boolean;
+    message: string;
+    invited_count?: number;
+    schedule_info?: {
+        schedule_id: string;
+        test_id: string;
+        test_title: string;
+        job_title: string;
+        start_time: string;
+        access_code: string;
+    };
+    new_emails?: string[];
+}
 
 export class TestScheduleService {
     static async getSchedulesByHrId(hrId: string): Promise<TestScheduleWithStats[]> {
@@ -135,15 +150,16 @@ export class TestScheduleService {
      * Thêm người dùng mới vào schedule hiện có
      * Tất cả ứng viên trong cùng schedule dùng chung một access_code
      */
+
     static async addInvitesToSchedule(
         scheduleId: string,
         emails: string[],
         hrId: string
-    ): Promise<{ success: boolean; message: string; invited_count?: number }> {
+    ): Promise<AddInvitesResult> {  // ⚠️ THAY ĐỔI RETURN TYPE
         // 1. Kiểm tra schedule có tồn tại không
         const { data: schedule, error: scheduleError } = await supabase
             .from('test_schedules')
-            .select('id, test_id')
+            .select('id, test_id, start_time')  // ⚠️ THÊM start_time
             .eq('id', scheduleId)
             .single();
 
@@ -154,7 +170,7 @@ export class TestScheduleService {
         // 2. Kiểm tra quyền sở hữu: HR phải sở hữu test này
         const { data: test, error: testError } = await supabase
             .from('tests')
-            .select('id, job_id')
+            .select('id, job_id, title')  // ⚠️ THÊM title
             .eq('id', schedule.test_id)
             .single();
 
@@ -164,7 +180,7 @@ export class TestScheduleService {
 
         const { data: job, error: jobError } = await supabase
             .from('jobs')
-            .select('id, hr_id')
+            .select('id, hr_id, title')  // ⚠️ THÊM title
             .eq('id', test.job_id)
             .single();
 
@@ -220,11 +236,34 @@ export class TestScheduleService {
             throw new Error(`Failed to add invites: ${invitesError.message}`);
         }
 
-        return {
+        // ⚠️ 7. LẤY ACCESS_CODE (QUAN TRỌNG - ĐOẠN NÀY BẠN THIẾU)
+        const { data: accessCodeData } = await supabase
+            .from('test_access_codes')
+            .select('code')
+            .eq('schedule_id', scheduleId)
+            .single();
+
+        console.log('🔍 Service - Access Code Query Result:', accessCodeData);
+
+        // ⚠️ 8. RETURN VỚI ĐẦY ĐỦ THÔNG TIN (QUAN TRỌNG - ĐOẠN NÀY BẠN THIẾU)
+        const result: AddInvitesResult = {
             success: true,
             message: `Successfully invited ${newEmails.length} new candidate(s)`,
             invited_count: newEmails.length,
+            new_emails: newEmails,  // ⚠️ THÊM MỚI
+            schedule_info: accessCodeData ? {  // ⚠️ THÊM MỚI
+                schedule_id: schedule.id,
+                test_id: test.id,
+                test_title: test.title,
+                job_title: job.title,
+                start_time: schedule.start_time,
+                access_code: accessCodeData.code,
+            } : undefined,
         };
+
+        console.log('🔍 Service Return Data:', result);
+
+        return result;
     }
 
     /**
@@ -269,7 +308,7 @@ export class TestScheduleService {
         }
 
         // 3. Xóa các bản ghi liên quan (theo thứ tự để tránh lỗi foreign key)
-        
+
         // 3.1. Xóa test_invites
         await supabase
             .from('test_invites')
