@@ -173,63 +173,63 @@ export default function JobDetailsPage({ params }: { params: Promise<{ id: strin
         setScheduleModalOpen(true);
     };
 
-    const handleScheduleSubmit = async (schedule: {
-        testId: string;
-        startTime: string;
-        emails: string[];
-    }) => {
-        try {
-            const token = localStorage.getItem('access_token');
-            if (!token) {
-                router.push('/auth/login');
-                return;
-            }
+        const handleScheduleSubmit = async (schedule: {
+            testId: string;
+            startTime: string;
+            emails: string[];
+        }) => {
+            try {
+                const token = localStorage.getItem('access_token');
+                if (!token) {
+                    router.push('/auth/login');
+                    return;
+                }
 
-            // Call API to schedule test
-            const response = await fetch(`${API_BASE_URL}/api/test-schedules/${schedule.testId}/schedule`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    start_time: schedule.startTime,
-                    emails: schedule.emails,
-                }),
-            });
+                // Call API to schedule test
+                const response = await fetch(`${API_BASE_URL}/api/test-schedules/${schedule.testId}/schedule`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({  
+                        start_time: schedule.startTime,
+                        emails: schedule.emails,
+                    }),
+                });
 
-            const result = await response.json();
+                const result = await response.json();
 
-            if (!response.ok) {
-                throw new Error(result.message || 'Failed to schedule test');
-            }
+                if (!response.ok) {
+                    throw new Error(result.message || 'Failed to schedule test');
+                }
 
-            if (result.success) {
-                // Update test status to 'scheduled' in local state
-                setTests(tests.map((t) => 
-                    t.id === schedule.testId 
-                        ? { ...t, status: 'scheduled' } 
-                        : t
-                ));
+                if (result.success) {
+                    // Update test status to 'scheduled' in local state
+                    setTests(tests.map((t) => 
+                        t.id === schedule.testId 
+                            ? { ...t, status: 'scheduled' } 
+                            : t
+                    ));
 
-                setScheduleModalOpen(false);
-                setSchedulingTest(null);
+                    setScheduleModalOpen(false);
+                    setSchedulingTest(null);
 
+                    showToast(
+                        `Test scheduled successfully! Invitations sent to ${result.data.invited_count} candidates.`,
+                        "success"
+                    );
+                } else {
+                    throw new Error(result.message || 'Failed to schedule test');
+                }
+            } catch (err) {
+                console.error('Error scheduling test:', err);
                 showToast(
-                    `Test scheduled successfully! Invitations sent to ${result.data.invited_count} candidates.`,
-                    "success"
+                    err instanceof Error ? err.message : 'Failed to schedule test',
+                    'error'
                 );
-            } else {
-                throw new Error(result.message || 'Failed to schedule test');
             }
-        } catch (err) {
-            console.error('Error scheduling test:', err);
-            showToast(
-                err instanceof Error ? err.message : 'Failed to schedule test',
-                'error'
-            );
-        }
-    };
+        };
 
     const handleCreateTest = (newTest: Test) => {
         if (editingTest) {

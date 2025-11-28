@@ -109,12 +109,15 @@ export class TestScheduleService {
             };
         }
 
+        // services/test-schedule.service.ts (chỉ sửa phần cuối)
+
         // 6. Tạo access code (1 mã cho schedule này)
+        let accessCode = ''; // ← Thêm biến này
         let codeInserted = false;
         let retries = 3;
 
         while (!codeInserted && retries > 0) {
-            const accessCode = this.generateAccessCode();
+            accessCode = this.generateAccessCode(); // ← Lưu vào biến
 
             const { error: codeError } = await supabase
                 .from('test_access_codes')
@@ -128,7 +131,6 @@ export class TestScheduleService {
             if (!codeError) {
                 codeInserted = true;
             } else if (codeError.code !== '23505') {
-                // Lỗi khác ngoài duplicate, rollback
                 await supabase.from('test_invites').delete().eq('schedule_id', schedule.id);
                 await supabase.from('test_schedules').delete().eq('id', schedule.id);
                 return {
@@ -142,7 +144,6 @@ export class TestScheduleService {
         }
 
         if (!codeInserted) {
-            // Hết retry, rollback
             await supabase.from('test_invites').delete().eq('schedule_id', schedule.id);
             await supabase.from('test_schedules').delete().eq('id', schedule.id);
             return {
@@ -161,6 +162,7 @@ export class TestScheduleService {
             data: {
                 schedule_id: schedule.id,
                 invited_count: emails.length,
+                access_code: accessCode, // ← THÊM DÒNG NÀY
             },
         };
     }
