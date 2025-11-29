@@ -1,18 +1,66 @@
 "use client"
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Users, CheckCircle2, XCircle, TrendingUp, Award, AlertCircle } from "lucide-react"
-import { candidates } from "@/data/candidates"
+import { Card, CardContent } from "@/components/ui/card"
+import { Users, CheckCircle2, XCircle, TrendingUp, Award, AlertCircle, Brain, Zap } from "lucide-react"
 import { motion } from "framer-motion"
 
-export function KPICards() {
+export interface TraitScore {
+  trait: string
+  bert_score: number | null
+  gemini_score: number | null
+  ensemble_score: number
+  priority: number
+  confidence: number
+}
+
+interface CandidateAssessment {
+  id: string
+  name: string
+  email: string
+  overall_score: number
+  trait_scores: TraitScore[]
+  method_used: string
+  status: "passed" | "failed"
+}
+
+interface KPICardsProps {
+  candidates?: CandidateAssessment[]
+}
+
+// ✅ Default empty array để tránh undefined
+export function KPICards({ candidates = [] }: KPICardsProps) {
   const totalCandidates = candidates.length
   const passedCandidates = candidates.filter((c) => c.status === "passed").length
   const failedCandidates = candidates.filter((c) => c.status === "failed").length
-  const passRate = ((passedCandidates / totalCandidates) * 100).toFixed(1)
-  const averageScore = (candidates.reduce((sum, c) => sum + c.averageScore, 0) / totalCandidates).toFixed(2)
-  const highestScore = Math.max(...candidates.map((c) => c.averageScore)).toFixed(2)
-  const lowestScore = Math.min(...candidates.map((c) => c.averageScore)).toFixed(2)
+  const passRate = totalCandidates > 0 ? ((passedCandidates / totalCandidates) * 100).toFixed(1) : "0.0"
+  
+  const assessedCandidates = candidates.filter(c => c.overall_score !== undefined && c.overall_score !== null)
+  
+  const averageScore = assessedCandidates.length > 0 
+    ? (assessedCandidates.reduce((sum, c) => sum + c.overall_score, 0) / assessedCandidates.length).toFixed(2)
+    : "N/A"
+  
+  const highestScore = assessedCandidates.length > 0
+    ? Math.max(...assessedCandidates.map((c) => c.overall_score)).toFixed(2)
+    : "N/A"
+  
+  const lowestScore = assessedCandidates.length > 0
+    ? Math.min(...assessedCandidates.map((c) => c.overall_score)).toFixed(2)
+    : "N/A"
+
+  const candidatesWithTraits = candidates.filter(c => c.trait_scores && c.trait_scores.length > 0)
+  const avgConfidence = candidatesWithTraits.length > 0 ? (
+    candidatesWithTraits.reduce((sum, c) => {
+      const candidateAvgConf = c.trait_scores.reduce((s, t) => s + t.confidence, 0) / c.trait_scores.length
+      return sum + candidateAvgConf
+    }, 0) / candidatesWithTraits.length * 100
+  ).toFixed(1) : "N/A"
+
+  const candidatesWithMethod = candidates.filter(c => c.method_used)
+  const ensembleCount = candidatesWithMethod.filter(c => c.method_used.includes('Ensemble')).length
+  const ensembleRate = candidatesWithMethod.length > 0
+    ? ((ensembleCount / candidatesWithMethod.length) * 100).toFixed(1)
+    : "0.0"
 
   const kpis = [
     {
@@ -46,7 +94,7 @@ export function KPICards() {
       gradient: "from-red-600 to-red-400"
     },
     {
-      title: "Average Score",
+      title: "Average AI Score",
       value: averageScore,
       subtitle: "out of 10.0",
       icon: TrendingUp,
@@ -75,10 +123,30 @@ export function KPICards() {
       borderColor: "border-orange-200",
       gradient: "from-orange-600 to-orange-400"
     },
+    {
+      title: "Avg Confidence",
+      value: `${avgConfidence}%`,
+      subtitle: "AI prediction certainty",
+      icon: Brain,
+      color: "text-cyan-600",
+      bgColor: "bg-cyan-100",
+      borderColor: "border-cyan-200",
+      gradient: "from-cyan-600 to-cyan-400"
+    },
+    {
+      title: "Ensemble Usage",
+      value: `${ensembleRate}%`,
+      subtitle: `${ensembleCount} dual-model analyses`,
+      icon: Zap,
+      color: "text-indigo-600",
+      bgColor: "bg-indigo-100",
+      borderColor: "border-indigo-200",
+      gradient: "from-indigo-600 to-indigo-400"
+    },
   ]
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       {kpis.map((kpi, index) => (
         <motion.div
           key={kpi.title}

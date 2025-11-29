@@ -1,6 +1,6 @@
 "use client"
 
-import { use } from "react" // ✅ Import use
+import { use, useEffect, useState } from "react" // ✅ Thêm useEffect, useState
 import { useRouter } from 'next/navigation'
 import { KPICards } from "@/components/dashboard/kpi-cards"
 import { DashboardCharts } from "@/components/dashboard/dashboard-charts"
@@ -9,30 +9,142 @@ import { Button } from "@/components/ui/button"
 import { ArrowLeft, BarChart3, Users, TrendingUp } from "lucide-react"
 import Link from "next/link"
 import { motion } from "framer-motion"
+export interface TraitScore {
+  trait: string
+  bert_score: number | null
+  gemini_score: number | null
+  ensemble_score: number
+  priority: number
+  confidence: number
+}
+
+// ✅ Import type
+interface CandidateAssessment {
+  id: string
+  name: string
+  email: string
+  videoUrl: string
+  submittedAt: string
+  overall_score: number
+  bert_overall: number | null
+  gemini_overall: number | null
+  trait_scores: TraitScore[]
+  recommendation: string
+  method_used: string
+  text_length: number
+  status: "passed" | "failed"
+}
 
 export default function TestDetailPage({
   params
 }: {
-  params: Promise<{ id: string }> // ✅ params là Promise
+  params: Promise<{ id: string }>
 }) {
   const router = useRouter()
-
-  // ✅ Unwrap params
   const { id: testId } = use(params)
 
-  console.log('Test ID:', testId)
+  // ✅ State cho data
+  const [candidates, setCandidates] = useState<CandidateAssessment[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  // ✅ Handler để navigate đến candidate detail
+  // ✅ Fetch data từ API
+  useEffect(() => {
+    async function fetchDashboard() {
+      try {
+        setLoading(true)
+
+        const token = localStorage.getItem('access_token') || localStorage.getItem('token');
+
+        if (!token) {
+          setError('Please log in again');
+          setLoading(false);
+          return;
+        }
+
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/testsdashboard/${testId}/dashboard`,
+          {
+            method: 'GET',
+            credentials: 'include', // Giữ lại nếu backend có dùng httpOnly cookie hoặc session
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`, // Gửi JWT token trong header
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch dashboard')
+        }
+
+        const result = await response.json()
+console.log("RAW API RESPONSE:", result) // LOG 1: Toàn bộ response
+
+        if (result.success && Array.isArray(result.data)) {
+          setCandidates(result.data)
+
+          // LOG 2: Siêu chi tiết candidates
+          console.log("=== CANDIDATES ĐÃ LẤY ĐƯỢC ===")
+          console.log("Tổng số:", result.data.length)
+          result.data.forEach((c: CandidateAssessment, idx: number) => {
+            console.log(`${idx + 1}. ${c.name} (ID: ${c.id})`)
+            console.log("   → Score:", c.overall_score)
+            console.log("   → Status:", c.status)
+            console.log("   → Recommendation:", c.recommendation)
+            console.log("   → Method:", c.method_used)
+            console.log("   → Traits:", c.trait_scores.map(t => `${t.trait}: ${t.ensemble_score}`).join(" | "))
+          })
+        }
+        
+        if (result.success) {
+          setCandidates(result.data)
+        }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } catch (err: any) {
+        console.error('Fetch error:', err)
+        setError(err.message)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchDashboard()
+  }, [testId])
+
   const handleViewCandidate = (candidateId: string | number) => {
     console.log('Navigating to:', `/hr/test/${testId}/candidates/${candidateId}`)
     router.push(`/hr/test/${testId}/candidates/${candidateId}`)
+  }
+
+  // ✅ Loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading dashboard...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // ✅ Error state
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">Error: {error}</p>
+          <Button onClick={() => window.location.reload()}>Retry</Button>
+        </div>
+      </div>
+    )
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header Section */}
-
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <div>
@@ -61,39 +173,22 @@ export default function TestDetailPage({
             transition={{ delay: 0.2 }}
             className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-amber-50 via-orange-50 to-yellow-50 border-2 border-amber-200/60 shadow-lg mb-4"
           >
-            {/* Decorative elements */}
             <div className="absolute top-0 right-0 w-32 h-32 bg-amber-200/20 rounded-full blur-3xl"></div>
             <div className="absolute bottom-0 left-0 w-24 h-24 bg-orange-200/20 rounded-full blur-2xl"></div>
 
             <div className="relative p-5 flex items-start gap-4">
-              {/* Icon */}
               <div className="flex-shrink-0">
                 <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-orange-500 rounded-xl flex items-center justify-center shadow-lg">
-                  <svg
-                    className="w-6 h-6 text-white"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
+                  <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
               </div>
 
-              {/* Content */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-2">
-                  <h3 className="text-lg font-bold text-amber-900">
-                    AI-Powered Analysis Advisory
-                  </h3>
-                  <span className="px-2.5 py-0.5 bg-amber-500/20 text-amber-700 text-xs font-semibold rounded-full border border-amber-300">
-                    Beta
-                  </span>
+                  <h3 className="text-lg font-bold text-amber-900">AI-Powered Analysis Advisory</h3>
+                  <span className="px-2.5 py-0.5 bg-amber-500/20 text-amber-700 text-xs font-semibold rounded-full border border-amber-300">Beta</span>
                 </div>
                 <p className="text-sm text-amber-800 leading-relaxed">
                   The AI-generated assessments and personality insights provided below are <span className="font-semibold">reference tools only</span> and should not be considered definitive evaluations.
@@ -101,7 +196,6 @@ export default function TestDetailPage({
                   combined with interviews, reference checks, and your professional judgment for optimal candidate assessment.
                 </p>
 
-                {/* Additional info pills */}
                 <div className="flex flex-wrap gap-2 mt-3">
                   <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/70 rounded-full text-xs text-amber-700 font-medium border border-amber-200">
                     <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
@@ -126,7 +220,6 @@ export default function TestDetailPage({
             </div>
           </motion.div>
 
-          {/* Quick Navigation Pills */}
           <div className="flex gap-2 flex-wrap">
             <div className="px-3 py-1.5 bg-white/80 backdrop-blur-sm border border-blue-200 rounded-full text-xs font-medium text-blue-700 flex items-center gap-1.5">
               <Users className="w-3.5 h-3.5" />
@@ -143,27 +236,25 @@ export default function TestDetailPage({
           </div>
         </div>
 
-        {/* KPI Cards */}
+        {/* ✅ Pass candidates prop */}
         <div className="mb-8">
-          <KPICards />
+          <KPICards candidates={candidates} />
         </div>
 
-        {/* Charts Grid */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-1 h-8 bg-gradient-to-b from-indigo-600 to-purple-600 rounded-full"></div>
             <h2 className="text-2xl font-bold text-gray-800">Analytics Overview</h2>
           </div>
-          <DashboardCharts />
+          <DashboardCharts candidates={candidates} />
         </div>
 
-        {/* Candidate Table */}
         <div>
           <div className="flex items-center gap-3 mb-6">
             <div className="w-1 h-8 bg-gradient-to-b from-blue-600 to-indigo-600 rounded-full"></div>
             <h2 className="text-2xl font-bold text-gray-800">Candidate Details</h2>
           </div>
-          <CandidateTable onViewDetails={handleViewCandidate} />
+          <CandidateTable candidates={candidates} onViewDetails={handleViewCandidate} />
         </div>
       </div>
     </div>

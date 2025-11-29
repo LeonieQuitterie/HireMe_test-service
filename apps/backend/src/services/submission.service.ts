@@ -1,7 +1,8 @@
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { supabase } from '../config/supabase';
-import { TranscriptionService } from './transcription.service';
+
 import { PersonalityService } from './personality.service';
+import { TranscriptionService } from './transcription.service';
 
 export class SubmissionService {
     private static client: S3Client;
@@ -123,7 +124,7 @@ export class SubmissionService {
 
         for (const answer of insertedAnswers) {
             TranscriptionService.processAnswer(answer.id, TEST_VIDEO_URL)
-                .catch(err => console.error(`Transcription error for ${answer.id}:`, err));
+                .catch((err: Error) => console.error(`Transcription error for ${answer.id}:`, err));
         }
 
         for (const answer of insertedAnswers) {

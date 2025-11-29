@@ -16,6 +16,8 @@ import submissionRoutes from './routes/submission.routes';
 import userRoutes from './routes/user.routes';
 import transcriptionRoutes from './routes/transcription.routes';
 import scheduleRoutes from './routes/schedule.routes';
+import dashboardRoutes from './routes/dashboard.routes';
+import candidateBigFiveRoutes from './routes/candidate-big-five.routes';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -37,7 +39,8 @@ app.use('/api/submissions', submissionRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/transcription', transcriptionRoutes);
 app.use('/api/schedules', scheduleRoutes);
-
+app.use('/api/testsdashboard', dashboardRoutes);
+app.use('/api/candidate-big-five', candidateBigFiveRoutes);
 // Health check
 app.get('/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
